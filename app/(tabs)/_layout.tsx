@@ -1,9 +1,30 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useRef } from 'react';
+import { Animated } from 'react-native';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import type { ComponentProps } from 'react';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+function AnimatedTabIcon({ name, color, size, focused }: { name: ComponentProps<typeof IconSymbol>['name']; color: string; size: number; focused: boolean }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: focused ? 1.2 : 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 8,
+    }).start();
+  }, [focused]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <IconSymbol size={size} name={name} color={color} />
+    </Animated.View>
+  );
+}
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -15,6 +36,7 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarActiveTintColor: "#d89b38",
         tabBarInactiveTintColor: "#8e8e8e",
+        animation: 'fade',
 
         tabBarStyle: {
           height: 74,
@@ -36,20 +58,18 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="house.fill" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <AnimatedTabIcon size={26} name="house.fill" color={color} focused={focused} />
           ),
         }}
       />
-
-
 
       <Tabs.Screen
         name="sell"
         options={{
           title: "Sell/Rent",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="plus.circle" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <AnimatedTabIcon size={28} name="plus.circle" color={color} focused={focused} />
           ),
         }}
       />
@@ -58,8 +78,8 @@ export default function TabLayout() {
         name="saved"
         options={{
           title: "Shortlist",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="heart" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <AnimatedTabIcon size={26} name="heart" color={color} focused={focused} />
           ),
         }}
       />
@@ -68,8 +88,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="person" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <AnimatedTabIcon size={26} name="person" color={color} focused={focused} />
           ),
         }}
       />
