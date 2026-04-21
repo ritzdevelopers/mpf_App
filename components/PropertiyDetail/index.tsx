@@ -5,13 +5,13 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { styles } from "./PropertyDetailsUI";
-import { IMAGE_BASE_URL, type Project } from "@/utils/api";
+import { buildProjectImageUrl, type Project } from "@/utils/api";
+import RemoteImage from "@/components/RemoteImage";
 
 export default function PropertyDetail({ project }: { project: Project | null }) {
   if (!project) {
@@ -32,9 +32,13 @@ export default function PropertyDetail({ project }: { project: Project | null })
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* HERO */}
         <View className={styles.imageWrapper}>
-          <Image
-            source={{ uri: `${IMAGE_BASE_URL}${project.projectBannerImage}` }}
+          <RemoteImage
+            uri={buildProjectImageUrl(
+              project,
+              project.projectBannerImage || project.projectThumbnailImage
+            )}
             className={styles.banner}
+            resizeMode="cover"
           />
 
           <View className={styles.overlay} />
@@ -139,9 +143,10 @@ export default function PropertyDetail({ project }: { project: Project | null })
         <View className={styles.section}>
           <Text className={styles.sectionTitle}>Contact Details</Text>
           <View className={styles.contactRow}>
-            <Image
-              source={{ uri: `${IMAGE_BASE_URL}${project.projectLogo}` }}
+            <RemoteImage
+              uri={buildProjectImageUrl(project, project.projectLogo)}
               className={styles.avatar}
+              resizeMode="cover"
             />
 
             <View className="flex-1">

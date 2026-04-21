@@ -6,18 +6,16 @@ import {
   Text,
   TextInput,
   FlatList,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { styles } from "./listingUI";
-import { fetchProjects, IMAGE_BASE_URL, type Project } from "@/utils/api";
+import { fetchProjects, buildProjectImageUrl, type Project } from "@/utils/api";
+import RemoteImage from "@/components/RemoteImage";
 
 const PAGE_SIZE = 20;
-
-const FALLBACK_IMAGE = "https://placehold.co/900x600/e2e8f0/94a3b8?text=No+Image";
 
 export default function ListingsPage() {
   const allProjects = useRef<Project[]>([]);
@@ -58,13 +56,10 @@ export default function ListingsPage() {
       activeOpacity={0.95}
       onPress={() => router.push(`/propertyDetail/${item.slugURL}` as any)}
     >
-      <Image
-        source={{ uri: `${IMAGE_BASE_URL}${item.projectThumbnailImage}` }}
+      <RemoteImage
+        uri={buildProjectImageUrl(item, item.projectThumbnailImage)}
         className={styles.image}
-        defaultSource={{ uri: FALLBACK_IMAGE }}
-        onError={(e) => {
-          (e.target as any).src = FALLBACK_IMAGE;
-        }}
+        resizeMode="cover"
       />
 
       <View className={styles.badgeRow}>
