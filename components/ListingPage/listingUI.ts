@@ -58,4 +58,34 @@ export const styles = {
     "flex-1 bg-[#d89b38] rounded-xl py-3 items-center",
 
   fillText: "text-white font-bold text-sm",
+
+  // Card internals
+  bottomTagText: "text-white text-[11px] font-semibold",
+  cardBody: "p-4",
+  titleRow: "flex-row justify-between items-start",
+  metricsRow:
+    "flex-row items-center justify-between mt-3 pt-3 border-t border-slate-100",
+  divider: "h-8 w-px bg-slate-100",
+  metricEnd: "items-end",
+  buttonRow: "flex-row gap-3 mt-4",
+
+  // Search / filter bar
+  searchInput: "flex-1 text-sm ml-2",
+  filterScroll: "mt-3",
+  clearBtn:
+    "flex-row items-center px-4 py-2 rounded-full border border-red-200 bg-red-50 mr-2",
+  clearBtnText: "text-xs font-semibold text-red-500 ml-1",
+
+  // Empty state
+  emptyWrap: "items-center justify-center py-16",
+  emptyTitle: "text-slate-400 text-base mt-4 font-semibold",
+  emptySubtitle: "text-slate-300 text-sm mt-1",
+
+  // Loading state
+  loadingWrap: "flex-1 bg-white items-center justify-center",
+  loadingText: "text-slate-400 text-sm mt-3",
+
+  // Page shell
+  pageShell: "flex-1 bg-slate-50",
+  footerWrap: "py-6 items-center",
 };

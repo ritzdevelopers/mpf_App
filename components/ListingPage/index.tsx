@@ -1,22 +1,29 @@
 // components/ListingsPage/index.tsx
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
   TextInput,
   FlatList,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   Modal,
   ScrollView,
   Pressable,
+  Platform,
 } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { styles } from "./listingUI";
-import { fetchProjects, getImageUrl, type Project } from "@/utils/api";
+import {
+  fetchProjects,
+  getProjectsCache,
+  getImageUrl,
+  prefetchProjectImages,
+  type Project,
+} from "@/utils/api";
 
 const PAGE_SIZE = 20;
 
@@ -31,10 +38,74 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "name_desc",  label: "Name: Z → A"         },
 ];
 
+const IMAGE_STYLE = { width: "100%" as const, height: 224 };
+
+const PropertyCard = memo(function PropertyCard({ item }: { item: Project }) {
+  const onPress = useCallback(() => {
+    router.push(`/propertyDetail/${item.slugURL}` as any);
+  }, [item.slugURL]);
+
+  return (
+    <TouchableOpacity className={styles.card} activeOpacity={0.95} onPress={onPress}>
+      <Image
+        source={{ uri: getImageUrl(item.slugURL, item.projectThumbnailImage) }}
+        style={IMAGE_STYLE}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={150}
+      />
+      <View className={styles.badgeRow}>
+        <Text className={styles.badgeDark}>{item.propertyTypeName}</Text>
+        <TouchableOpacity className={styles.heartBtn}>
+          <Ionicons name="heart-outline" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      <View className={styles.bottomTag}>
+        <Text className={styles.bottomTagText}>{item.projectStatusName}</Text>
+      </View>
+      <View className={styles.cardBody}>
+        <View className={styles.titleRow}>
+          <Text className={styles.title} numberOfLines={2}>{item.projectName}</Text>
+          <Text className={styles.yellowTag}>{item.cityName}</Text>
+        </View>
+        <Text className={styles.location} numberOfLines={1}>
+          {item.projectConfiguration} · {item.projectLocality}
+        </Text>
+        <View className={styles.metricsRow}>
+          <View>
+            <Text className={styles.smallText}>Starting Price</Text>
+            <Text className={styles.price}>₹{item.projectPrice} Cr</Text>
+          </View>
+          <View className={styles.divider} />
+          <View className={styles.metricEnd}>
+            <Text className={styles.smallText}>Builder</Text>
+            <Text className={styles.price} numberOfLines={1}>{item.builderName}</Text>
+          </View>
+          <View className={styles.divider} />
+          <View className={styles.metricEnd}>
+            <Text className={styles.smallText}>Type</Text>
+            <Text className={styles.price} numberOfLines={1}>{item.propertyTypeName}</Text>
+          </View>
+        </View>
+        <View className={styles.buttonRow}>
+          <TouchableOpacity className={styles.outlineBtn}>
+            <Text className={styles.outlineText}>Brochure</Text>
+          </TouchableOpacity>
+          <TouchableOpacity className={styles.fillBtn}>
+            <Text className={styles.fillText}>View Number</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+const keyExtractor = (item: Project) => String(item.id);
+
 export default function ListingsPage() {
   const allProjects   = useRef<Project[]>([]);
   const [displayed,   setDisplayed]   = useState<Project[]>([]);
-  const [loading,     setLoading]     = useState(true);
+  const [loading,     setLoading]     = useState(!getProjectsCache());
   const [loadingMore, setLoadingMore] = useState(false);
   const [error,       setError]       = useState(false);
   const filteredRef   = useRef<Project[]>([]);
@@ -54,6 +125,15 @@ export default function ListingsPage() {
   const [statuses, setStatuses] = useState<string[]>([]);
 
   useEffect(() => {
+    const cached = getProjectsCache();
+    if (cached) {
+      allProjects.current = cached;
+      setTypes([...new Set(cached.map((p) => p.propertyTypeName).filter(Boolean))].sort());
+      setCities([...new Set(cached.map((p) => p.cityName).filter(Boolean))].sort());
+      setStatuses([...new Set(cached.map((p) => p.projectStatusName).filter(Boolean))].sort());
+      applyFilters(cached, "", "default", null, null, null);
+      return;
+    }
     fetchProjects()
       .then((data) => {
         allProjects.current = data;
@@ -94,7 +174,10 @@ export default function ListingsPage() {
 
     filteredRef.current = result;
     pageRef.current = 1;
-    setDisplayed(result.slice(0, PAGE_SIZE));
+    const firstPage = result.slice(0, PAGE_SIZE);
+    setDisplayed(firstPage);
+    // Warm the disk cache for the visible page so tiles render instantly.
+    prefetchProjectImages(firstPage, PAGE_SIZE);
   }
 
   // re-apply whenever any filter changes
@@ -113,67 +196,17 @@ export default function ListingsPage() {
       setDisplayed((prev) => [...prev, ...chunk]);
       pageRef.current += 1;
       setLoadingMore(false);
+      // Prefetch thumbnails for the chunk the user is about to scroll into.
+      prefetchProjectImages(chunk, PAGE_SIZE);
     }, 80);
   }, [loadingMore]);
 
   const activeFilterCount = [filterType, filterCity, filterStatus].filter(Boolean).length;
 
-  // ── card ──
-  const renderCard = useCallback(({ item }: { item: Project }) => (
-    <TouchableOpacity
-      className={styles.card}
-      activeOpacity={0.95}
-      onPress={() => router.push(`/propertyDetail/${item.slugURL}` as any)}
-    >
-      <Image
-        source={{ uri: getImageUrl(item.slugURL, item.projectThumbnailImage) }}
-        className={styles.image}
-        resizeMode="cover"
-      />
-      <View className={styles.badgeRow}>
-        <Text className={styles.badgeDark}>{item.propertyTypeName}</Text>
-        <TouchableOpacity className={styles.heartBtn}>
-          <Ionicons name="heart-outline" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
-      <View className={styles.bottomTag}>
-        <Text className="text-white text-[11px] font-semibold">{item.projectStatusName}</Text>
-      </View>
-      <View className="p-4">
-        <View className="flex-row justify-between items-start">
-          <Text className={styles.title} numberOfLines={2}>{item.projectName}</Text>
-          <Text className={styles.yellowTag}>{item.cityName}</Text>
-        </View>
-        <Text className={styles.location} numberOfLines={1}>
-          {item.projectConfiguration} · {item.projectLocality}
-        </Text>
-        <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-slate-100">
-          <View>
-            <Text className={styles.smallText}>Starting Price</Text>
-            <Text className={styles.price}>₹{item.projectPrice} Cr</Text>
-          </View>
-          <View className="h-8 w-px bg-slate-100" />
-          <View className="items-end">
-            <Text className={styles.smallText}>Builder</Text>
-            <Text className={styles.price} numberOfLines={1}>{item.builderName}</Text>
-          </View>
-          <View className="h-8 w-px bg-slate-100" />
-          <View className="items-end">
-            <Text className={styles.smallText}>Type</Text>
-            <Text className={styles.price} numberOfLines={1}>{item.propertyTypeName}</Text>
-          </View>
-        </View>
-        <View className="flex-row gap-3 mt-4">
-          <TouchableOpacity className={styles.outlineBtn}>
-            <Text className={styles.outlineText}>Brochure</Text>
-          </TouchableOpacity>
-          <TouchableOpacity className={styles.fillBtn}>
-            <Text className={styles.fillText}>View Number</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
-  ), []);
+  const renderCard = useCallback(
+    ({ item }: { item: Project }) => <PropertyCard item={item} />,
+    []
+  );
 
   // ── list header ──
   const ListHeader = useMemo(() => (
@@ -188,7 +221,7 @@ export default function ListingsPage() {
           <TextInput
             placeholder="Search project, city, locality…"
             placeholderTextColor="#999"
-            className="flex-1 text-sm ml-2"
+            className={styles.searchInput}
             value={search}
             onChangeText={setSearch}
             returnKeyType="search"
@@ -206,7 +239,7 @@ export default function ListingsPage() {
       </View>
 
       {/* Filter chips */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ paddingRight: 4 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className={styles.filterScroll} contentContainerStyle={{ paddingRight: 4 }}>
         {/* Sort */}
         <TouchableOpacity
           onPress={() => setDropdown(dropdown === "sort" ? null : "sort")}
@@ -257,10 +290,10 @@ export default function ListingsPage() {
         {(activeFilterCount > 0 || sortBy !== "default") && (
           <TouchableOpacity
             onPress={() => { setFilterType(null); setFilterCity(null); setFilterStatus(null); setSortBy("default"); }}
-            className="flex-row items-center px-4 py-2 rounded-full border border-red-200 bg-red-50 mr-2"
+            className={styles.clearBtn}
           >
             <Ionicons name="close" size={13} color="#ef4444" />
-            <Text className="text-xs font-semibold text-red-500 ml-1">Clear</Text>
+            <Text className={styles.clearBtnText}>Clear</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -275,10 +308,10 @@ export default function ListingsPage() {
       </Text>
 
       {displayed.length === 0 && !loading && (
-        <View className="items-center justify-center py-16">
+        <View className={styles.emptyWrap}>
           <Ionicons name="search-outline" size={48} color="#cbd5e1" />
-          <Text className="text-slate-400 text-base mt-4 font-semibold">No properties found</Text>
-          <Text className="text-slate-300 text-sm mt-1">Try a different search or clear filters</Text>
+          <Text className={styles.emptyTitle}>No properties found</Text>
+          <Text className={styles.emptySubtitle}>Try a different search or clear filters</Text>
         </View>
       )}
     </View>
@@ -287,35 +320,36 @@ export default function ListingsPage() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white items-center justify-center">
+      <View className={styles.loadingWrap}>
         <ActivityIndicator size="large" color="#d89b38" />
-        <Text className="text-slate-400 text-sm mt-3">Loading properties…</Text>
+        <Text className={styles.loadingText}>Loading properties…</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className={styles.pageShell}>
       <FlatList
         data={displayed}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={keyExtractor}
         renderItem={renderCard}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={
           loadingMore ? (
-            <View className="py-6 items-center">
+            <View className={styles.footerWrap}>
               <ActivityIndicator size="small" color="#d89b38" />
             </View>
           ) : null
         }
         onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={0.6}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 48, paddingBottom: 40 }}
-        removeClippedSubviews
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        initialNumToRender={5}
+        removeClippedSubviews={Platform.OS === "android"}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        updateCellsBatchingPeriod={30}
+        windowSize={9}
       />
 
       {/* ── Dropdown Modal ── */}

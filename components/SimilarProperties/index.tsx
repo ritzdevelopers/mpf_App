@@ -1,10 +1,11 @@
 // components/SimilarProperties/index.tsx
 
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { fetchProjects, getImageUrl, type Project } from "@/utils/api";
+import { fetchProjects, getProjectsCache, getImageUrl, type Project } from "@/utils/api";
 
 const STATUS_COLORS: Record<string, string> = {
   "Ready To Move":    "#16a34a",
@@ -14,10 +15,14 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function SimilarProperties() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getProjectsCache();
+  const [projects, setProjects] = useState<Project[]>(
+    cached ? cached.slice(0, 6) : []
+  );
+  const [loading, setLoading] = useState(!cached);
 
   useEffect(() => {
+    if (cached) return; // already warm — skip fetch + spinner
     fetchProjects()
       .then((data) => setProjects(data.slice(0, 6)))
       .finally(() => setLoading(false));
@@ -65,7 +70,9 @@ export default function SimilarProperties() {
                   <Image
                     source={{ uri: getImageUrl(item.slugURL, item.projectThumbnailImage) }}
                     style={{ width: "100%", height: "100%" }}
-                    resizeMode="cover"
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={150}
                   />
 
                   {/* Status tag */}

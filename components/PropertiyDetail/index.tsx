@@ -47,6 +47,8 @@ function OverviewItem({ icon, label, value }: { icon: string; label: string; val
   );
 }
 
+const HERO_H = 380;
+
 export default function PropertyDetail({ project }: { project: Project | null }) {
   const [liked, setLiked] = useState(false);
 
@@ -71,18 +73,13 @@ export default function PropertyDetail({ project }: { project: Project | null })
       <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
 
         {/* ── HERO ── */}
-        <View style={{ position: "relative" }}>
+        <View style={{ position: "relative", height: HERO_H, backgroundColor: "#e2e8f0" }}>
           <Image
             source={{ uri: imgUri }}
-            style={{ width: "100%", height: 360 }}
+            style={{ width: "100%", height: HERO_H }}
             resizeMode="cover"
           />
 
-          {/* light gradient fade at bottom */}
-          <View style={{
-            position: "absolute", bottom: 0, left: 0, right: 0, height: 160,
-            background: "linear-gradient(to top, #f1f5f9, transparent)"
-          }} />
 
           {/* top buttons */}
           <View style={{ position: "absolute", top: 52, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" }}>
@@ -109,8 +106,8 @@ export default function PropertyDetail({ project }: { project: Project | null })
             </View>
           </View>
 
-          {/* Glass title card overlapping image */}
-          <View style={{ position: "absolute", bottom: -28, left: 16, right: 16 }}>
+          {/* Glass title card aligned inside image bottom */}
+          <View style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
             <GlassCard>
               <Text style={{ fontSize: 20, fontWeight: "800", color: "#0f172a" }} numberOfLines={2}>
                 {project.projectName}
@@ -126,7 +123,7 @@ export default function PropertyDetail({ project }: { project: Project | null })
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 16, marginTop: 46 }}>
+        <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
 
           {/* ── STAT CHIPS ── */}
           <View style={{ flexDirection: "row", gap: 8 }}>
