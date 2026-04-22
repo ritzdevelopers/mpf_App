@@ -1,100 +1,110 @@
 // components/SimilarProperties/index.tsx
 
-import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {styles} from './similarUI'
+import { router } from "expo-router";
+import { fetchProjects, getImageUrl, type Project } from "@/utils/api";
 
-const properties = [
-  {
-    id: 1,
-    title: "Fab Luxe Residences",
-    price: "₹ 3 Cr* Onwards",
-    image: require("@/assets/images/b1.webp"),
-    location: "Sector 4, Noida Extension, Uttar Pradesh",
-    builder: "One Global / Forbes",
-    details: "3 BHK-1935 sq.ft, 4 BHK-2394 sq.ft",
-    rera: "Coming soon",
-  },
-
-  {
-    id: 2,
-    title: "Dasnac Place 93",
-    price: "Price on Request",
-    image: require("@/assets/images/b2.webp"),
-    location: "Sector 93B, Noida, Uttar Pradesh",
-    builder: "Dasnac",
-    details: "Shop-775 sq.ft",
-    rera: "UPRERAPRJ518502/05/2024",
-  },
-
-  {
-    id: 3,
-    title: "Eldeco 7 Peaks Residences",
-    price: "₹ 2.1 Cr* Onwards",
-    image: require("@/assets/images/b3.webp"),
-    location: "Sector Omicron 1A, Greater Noida, Uttar Pradesh",
-    builder: "Eldeco",
-    details: "2 BHK, 3 BHK, 4 BHK",
-    rera: "UPRERAPRJ106523/01/2026",
-  },
-
-];
+const STATUS_COLORS: Record<string, string> = {
+  "Ready To Move":    "#16a34a",
+  "Under Construction": "#d89b38",
+  "New Launch":       "#2563eb",
+  "Possession Soon":  "#9333ea",
+};
 
 export default function SimilarProperties() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProjects()
+      .then((data) => setProjects(data.slice(0, 6)))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <View className={styles.container}>
-      <Text className={styles.heading}>Similar Properties</Text>
-      <Text className={styles.subHeading}>
-        Curated especially for you
-      </Text>
+    <View className="bg-white px-4 pt-5 pb-6">
+      {/* Heading */}
+      <View className="flex-row justify-between items-center mb-4">
+        <View>
+          <Text className="text-xl font-bold text-slate-900">Featured Projects</Text>
+          <Text className="text-xs text-slate-400 mt-0.5">Curated especially for you</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.push("/listings" as any)}
+          className="flex-row items-center"
+        >
+          <Text className="text-xs font-bold text-[#d89b38]">See All</Text>
+          <Ionicons name="chevron-forward" size={14} color="#d89b38" />
+        </TouchableOpacity>
+      </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingRight: 20 }}
-      >
-        {properties.map((item) => (
-          <TouchableOpacity key={item.id} className={styles.card}>
-            
-            {/* Image */}
-            <View className={styles.imageWrap}>
-              <Image
-                source={item.image}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
+      {loading ? (
+        <View className="h-44 items-center justify-center">
+          <ActivityIndicator color="#d89b38" />
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 4 }}
+        >
+          {projects.map((item) => {
+            const tagColor = STATUS_COLORS[item.projectStatusName] ?? "#64748b";
+            return (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => router.push(`/propertyDetail/${item.slugURL}` as any)}
+                className="mr-4 w-64 bg-white rounded-2xl overflow-hidden border border-slate-100"
+                style={{ shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}
+                activeOpacity={0.9}
+              >
+                {/* Image */}
+                <View className="h-44 relative">
+                  <Image
+                    source={{ uri: getImageUrl(item.slugURL, item.projectThumbnailImage) }}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
+                  />
 
-              {/* Heart */}
-              <Ionicons
-                name="heart-outline"
-                size={30}
-                color="white"
-                style={{ position: "absolute", top: 10, right: 10 }}
-              />
+                  {/* Status tag */}
+                  <View style={{ position: "absolute", top: 10, left: 10, backgroundColor: tagColor, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
+                    <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{item.projectStatusName}</Text>
+                  </View>
 
-              {/* Price */}
-              <View className={styles.priceBox}>
-                <Text className={styles.priceText}>
-                  {item.price}
-                </Text>
-              </View>
-            </View>
+                  {/* Heart */}
+                  <TouchableOpacity className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/30 items-center justify-center">
+                    <Ionicons name="heart-outline" size={16} color="white" />
+                  </TouchableOpacity>
 
-            {/* Title */}
-            <Text numberOfLines={1} className={styles.title}>
-              {item.title}
-            </Text>
+                  {/* Price overlay */}
+                  <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "rgba(0,0,0,0.45)", paddingHorizontal: 12, paddingVertical: 7 }}>
+                    <Text style={{ color: "#fff", fontSize: 13, fontWeight: "700" }}>₹{item.projectPrice} Cr</Text>
+                  </View>
+                </View>
 
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+                {/* Info */}
+                <View className="p-3">
+                  <Text className="text-sm font-bold text-slate-900" numberOfLines={1}>
+                    {item.projectName}
+                  </Text>
+                  <View className="flex-row items-center mt-1">
+                    <Ionicons name="location-outline" size={11} color="#94a3b8" />
+                    <Text className="text-xs text-slate-400 ml-0.5" numberOfLines={1}>
+                      {item.projectLocality}, {item.cityName}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center justify-between mt-2 pt-2 border-t border-slate-100">
+                    <Text className="text-xs text-slate-500" numberOfLines={1}>{item.projectConfiguration.split(",")[0]}</Text>
+                    <Text className="text-xs text-slate-400" numberOfLines={1}>{item.builderName}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 }

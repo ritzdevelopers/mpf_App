@@ -1,60 +1,61 @@
 // components/ListingsPage/listingUI.ts
 
 export const styles = {
-  container: "px-4 pt-12 pb-10 bg-white",
+  container: "bg-slate-50",
 
   header: "flex-row items-center gap-3",
+
   circleBtn:
-    "h-12 w-12 rounded-full border border-slate-200 items-center justify-center bg-white",
+    "h-11 w-11 rounded-2xl border border-slate-200 items-center justify-center bg-white",
 
   searchBox:
-    "flex-1 h-12 border border-slate-200 rounded-full px-4 flex-row items-center",
+    "flex-1 h-11 border border-slate-200 rounded-2xl px-4 flex-row items-center bg-white",
 
   filterBtn:
-    "px-5 py-3 rounded-full border border-slate-300 mr-3 bg-white",
+    "px-4 py-2 rounded-full border border-slate-200 mr-2 bg-white",
 
-  filterText: "text-sm font-medium text-slate-900",
+  filterText: "text-xs font-semibold text-slate-700",
 
-  resultText: "mt-5 text-sm font-semibold text-slate-500",
+  resultText: "mt-4 text-xs font-bold text-slate-400 tracking-wide uppercase",
 
   card:
-    "mt-5 bg-white rounded-3xl overflow-hidden border border-slate-200",
+    "mt-4 bg-white rounded-3xl overflow-hidden border border-slate-100",
 
-  image: "w-full h-80",
+  image: "w-full h-56",
 
   badgeRow:
-    "absolute top-4 left-4 right-4 flex-row justify-between items-center",
+    "absolute top-3 left-3 right-3 flex-row justify-between items-center",
 
   badgeDark:
-    "bg-black/50 text-white px-3 py-2 rounded-full text-xs font-semibold",
+    "bg-black/50 text-white px-3 py-1.5 rounded-full text-[11px] font-bold",
 
   heartBtn:
-    "h-10 w-10 rounded-full bg-black/40 items-center justify-center",
+    "h-9 w-9 rounded-full bg-black/35 items-center justify-center",
 
   bottomTag:
-    "absolute bottom-[285px] left-0 right-0 bg-black/40 px-4 py-2",
+    "absolute bottom-[155px] left-0 right-0 bg-gradient-to-t from-black/60 px-3 py-2",
 
-  title: "text-2xl font-bold text-slate-900 w-[70%]",
+  title: "text-lg font-bold text-slate-900 flex-1 mr-2",
 
   yellowTag:
-    "bg-yellow-100 text-yellow-800 text-xs px-3 py-2 rounded-full font-semibold",
+    "bg-[#FFF8EC] text-[#d89b38] text-[10px] px-2.5 py-1 rounded-full font-bold border border-[#d89b38]/20",
 
-  location: "text-sm text-slate-500 mt-2",
+  location: "text-xs text-slate-400 mt-1.5",
 
-  smallText: "text-xs text-slate-500",
+  smallText: "text-[10px] text-slate-400 font-medium",
 
-  price: "text-xl font-bold text-slate-900 mt-1",
+  price: "text-base font-extrabold text-slate-900 mt-0.5",
 
   areaPrice:
-    "text-sm text-slate-600 mt-4 bg-slate-100 px-3 py-2 rounded-lg",
+    "text-xs text-slate-500 mt-3 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100",
 
   outlineBtn:
-    "flex-1 border border-blue-500 rounded-xl py-4 items-center",
+    "flex-1 border border-slate-200 rounded-xl py-3 items-center",
 
-  outlineText: "text-blue-600 font-bold",
+  outlineText: "text-slate-700 font-bold text-sm",
 
   fillBtn:
-    "flex-1 bg-blue-600 rounded-xl py-4 items-center",
+    "flex-1 bg-[#d89b38] rounded-xl py-3 items-center",
 
-  fillText: "text-white font-bold",
+  fillText: "text-white font-bold text-sm",
 };
