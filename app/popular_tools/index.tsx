@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { styles } from './toolUI';
-import BackHeader from '@/components/BackHeader';
+import BackHeader from '@/components/layout/BackHeader';
 
 const toolsData = [
     {

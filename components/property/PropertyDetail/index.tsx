@@ -1,11 +1,10 @@
 // components/PropertyDetail/index.tsx
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
-  Image,
   TouchableOpacity,
   Linking,
   Modal,
@@ -14,7 +13,9 @@ import {
   Dimensions,
   StatusBar,
   FlatList,
+  StyleSheet,
 } from "react-native";
+import { Image } from "expo-image";
 import {
   PinchGestureHandler,
   PanGestureHandler,
@@ -25,7 +26,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { getImageUrl, type Project, type ProjectDetail } from "@/utils/api";
 import { styles } from "./PropertyDetailsUI";
-import { useUser } from "../../utils/authStore";
+import { useUser } from "@/utils/authStore";
 import LoginSheet from "../LoginSheet";
 
 function stripHtml(html?: string): string {
@@ -48,6 +49,83 @@ const HERO_H = 380;
 
 function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <View className={`${styles.glass} ${className}`}>{children}</View>;
+}
+
+/* ── Animated shimmer overlay (no LinearGradient required) ── */
+function ShimmerOverlay({ width, height, borderRadius = 0 }: { width: number; height: number; borderRadius?: number }) {
+  const translate = useRef(new Animated.Value(-width)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(translate, {
+        toValue: width,
+        duration: 1200,
+        useNativeDriver: true,
+      })
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [width, translate]);
+
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: "absolute",
+        top: 0, left: 0,
+        width, height, borderRadius,
+        backgroundColor: "#e2e8f0",
+        overflow: "hidden",
+      }}
+    >
+      <Animated.View
+        style={{
+          position: "absolute",
+          top: 0, bottom: 0,
+          width: width * 0.55,
+          backgroundColor: "rgba(255,255,255,0.55)",
+          transform: [{ translateX: translate }, { skewX: "-20deg" }],
+        }}
+      />
+    </View>
+  );
+}
+
+/* ── Gallery image card with shimmer skeleton until loaded ── */
+function GalleryThumb({ uri, onPress }: { uri: string; onPress: () => void }) {
+  const [loaded, setLoaded] = useState(false);
+  const fade = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (loaded) {
+      Animated.timing(fade, {
+        toValue: 0,
+        duration: 280,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loaded, fade]);
+
+  return (
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={{ marginRight: 10 }}>
+      <View style={{ width: 200, height: 130, borderRadius: 14, overflow: "hidden", backgroundColor: "#e2e8f0" }}>
+        <Image
+          source={{ uri }}
+          style={{ width: 200, height: 130 }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={150}
+          onLoadEnd={() => setLoaded(true)}
+        />
+        <Animated.View
+          pointerEvents="none"
+          style={{ ...StyleSheet.absoluteFillObject, opacity: fade }}
+        >
+          <ShimmerOverlay width={200} height={130} borderRadius={14} />
+        </Animated.View>
+      </View>
+    </TouchableOpacity>
+  );
 }
 
 function StatChip({ icon, label, value, color }: { icon: string; label: string; value: string; color: string }) {
@@ -107,11 +185,13 @@ function ZoomableImage({
   uri: string;
   onZoomChange: (zoomed: boolean) => void;
 }) {
-  const IMG_H = SCREEN_H * 0.65;
+  const IMG_H = SCREEN_H;
 
-  // Scale
-  const scale = useRef(new Animated.Value(1)).current;
-  const lastScale = useRef(1);
+  // Accumulated zoom (persisted between gestures) × current gesture's relative zoom
+  const baseScale  = useRef(new Animated.Value(1)).current;
+  const pinchScale = useRef(new Animated.Value(1)).current;
+  const scale      = useRef(Animated.multiply(baseScale, pinchScale)).current;
+  const lastScale  = useRef(1);
   const [isZoomed, setIsZoomed] = useState(false);
 
   // Pan
@@ -125,7 +205,7 @@ function ZoomableImage({
 
   /* ── Pinch ── */
   const onPinchEvent = Animated.event(
-    [{ nativeEvent: { scale } }],
+    [{ nativeEvent: { scale: pinchScale } }],
     { useNativeDriver: true }
   );
 
@@ -138,17 +218,21 @@ function ZoomableImage({
     }
 
     if (oldState === State.ACTIVE) {
-      lastScale.current = Math.max(1, Math.min(4, lastScale.current * gestureScale));
-      scale.setValue(lastScale.current);
+      // Commit the gesture into baseScale, then reset pinchScale so the
+      // next gesture multiplies cleanly off the new cumulative zoom.
+      const next = Math.max(1, Math.min(4, lastScale.current * gestureScale));
+      lastScale.current = next;
+      baseScale.setValue(next);
+      pinchScale.setValue(1);
 
-      if (lastScale.current <= 1.05) {
+      if (next <= 1.05) {
         lastScale.current = 1;
         lastTranslateX.current = 0;
         lastTranslateY.current = 0;
         translateX.flattenOffset();
         translateY.flattenOffset();
         Animated.parallel([
-          Animated.spring(scale,      { toValue: 1, useNativeDriver: true }),
+          Animated.spring(baseScale,  { toValue: 1, useNativeDriver: true }),
           Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
           Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
         ]).start();
@@ -215,15 +299,22 @@ function ZoomableImage({
           onHandlerStateChange={onPinchStateChange}
           simultaneousHandlers={panRef}
         >
-          <Animated.Image
-            source={{ uri }}
+          <Animated.View
             style={{
               width: SCREEN_W,
               height: IMG_H,
               transform: [{ translateX }, { translateY }, { scale }],
             }}
-            resizeMode="contain"
-          />
+          >
+            <Image
+              source={{ uri }}
+              style={{ width: "100%", height: "100%" }}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              transition={120}
+              priority="high"
+            />
+          </Animated.View>
         </PinchGestureHandler>
       </Animated.View>
     </PanGestureHandler>
@@ -395,7 +486,8 @@ export default function PropertyDetail({
   }
 
   const configurations = project.projectConfiguration.split(",").map((c) => c.trim()).filter(Boolean);
-  const imgUri = getImageUrl(project.slugURL, project.projectBannerImage || project.projectThumbnailImage);
+  const bannerUri    = getImageUrl(project.slugURL, project.projectBannerImage || project.projectThumbnailImage);
+  const thumbnailUri = getImageUrl(project.slugURL, project.projectThumbnailImage);
   const emi = Math.round(parseFloat(project.projectPrice) * 100000 * 8.5 / 1200);
   const aboutText = stripHtml(detail?.projectWalkthroughDescription) || detail?.metaDescription || "";
 
@@ -406,9 +498,14 @@ export default function PropertyDetail({
         {/* ── HERO ── */}
         <View className={styles.hero} style={{ height: HERO_H }}>
           <Image
-            source={{ uri: imgUri }}
+            source={{ uri: bannerUri }}
+            placeholder={thumbnailUri ? { uri: thumbnailUri } : undefined}
+            placeholderContentFit="cover"
             style={{ width: "100%", height: HERO_H }}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={200}
+            priority="high"
           />
 
           {/* top buttons */}
@@ -428,11 +525,27 @@ export default function PropertyDetail({
 
           {/* badges */}
           <View className={styles.badgeRow}>
-            <View className={styles.badgeBlue}>
-              <Text className={styles.badgeText}>{project.propertyTypeName}</Text>
+            <View className={styles.badgePill}>
+              <View className={styles.badgeDotBlue} />
+              <Text className={styles.badgeTextBlue}>{project.propertyTypeName}</Text>
             </View>
-            <View className={project.projectStatusName === "Ready To Move" ? styles.badgeGreen : styles.badgeAmber}>
-              <Text className={styles.badgeText}>{project.projectStatusName}</Text>
+            <View className={styles.badgePill}>
+              <View
+                className={
+                  project.projectStatusName === "Ready To Move"
+                    ? styles.badgeDotGreen
+                    : styles.badgeDotAmber
+                }
+              />
+              <Text
+                className={
+                  project.projectStatusName === "Ready To Move"
+                    ? styles.badgeTextGreen
+                    : styles.badgeTextAmber
+                }
+              >
+                {project.projectStatusName}
+              </Text>
             </View>
           </View>
 
@@ -508,22 +621,11 @@ export default function PropertyDetail({
                 {detail.galleryImages.map((img, i) => {
                   const uri = getImageUrl(project.slugURL, img.imageName);
                   return (
-                    <TouchableOpacity
+                    <GalleryThumb
                       key={img.id ?? i}
-                      activeOpacity={0.85}
+                      uri={uri}
                       onPress={() => setLightboxIndex(i)}
-                    >
-                      <Image
-                        source={{ uri }}
-                        style={{
-                          width: 200,
-                          height: 130,
-                          borderRadius: 14,
-                          marginRight: 10,
-                        }}
-                        resizeMode="cover"
-                      />
-                    </TouchableOpacity>
+                    />
                   );
                 })}
               </ScrollView>
@@ -667,7 +769,9 @@ export default function PropertyDetail({
                 <Image
                   source={{ uri: getImageUrl(project.slugURL, project.projectLogo) }}
                   style={{ width: 52, height: 52 }}
-                  resizeMode="cover"
+                  contentFit="contain"
+                  cachePolicy="memory-disk"
+                  transition={150}
                 />
               </View>
               <View style={{ flex: 1 }}>

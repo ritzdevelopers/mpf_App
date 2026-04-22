@@ -100,7 +100,6 @@ export default function RootLayout() {
     <ThemeProvider value={DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)"              options={{ headerShown: false }} />
-        <Stack.Screen name="modal"               options={{ presentation: 'modal', title: 'Modal' }} />
         <Stack.Screen name="popular_tools"       options={{ headerShown: false }} />
         <Stack.Screen name="listings/index"      options={{ headerShown: false }} />
         <Stack.Screen name="propertyDetail/[id]" options={{ headerShown: false }} />

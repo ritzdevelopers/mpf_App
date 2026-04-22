@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { setUser } from "../../utils/authStore";
+import { setUser } from "@/utils/authStore";
 
 const DUMMY_EMAIL    = "test@realestate.com";
 const DUMMY_PASSWORD = "Test@123";

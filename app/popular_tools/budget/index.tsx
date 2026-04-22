@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./budgetUI";
-import BackHeader from '@/components/BackHeader';
+import BackHeader from '@/components/layout/BackHeader';
 
 export default function BudgetPage() {
   const [income, setIncome] = useState("");

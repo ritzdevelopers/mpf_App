@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { ScrollView, View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./LoanUi";
-import BackHeader from '@/components/BackHeader';
+import BackHeader from '@/components/layout/BackHeader';
 
 export default function LoanPage() {
   const [salary, setSalary] = useState("");

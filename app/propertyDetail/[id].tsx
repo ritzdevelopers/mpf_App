@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import PropertyDetail from "@/components/PropertiyDetail";
+import PropertyDetail from "@/components/property/PropertyDetail";
 import {
   fetchProjects,
   getProjectsCache,

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from  './emiUI';
-import BackHeader from '@/components/BackHeader';
+import BackHeader from '@/components/layout/BackHeader';
 
 export default function EMIPage() {
   const [loan, setLoan] = useState("");

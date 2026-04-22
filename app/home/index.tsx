@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import Navbar from "@/components/navbar";
-import Header from "@/components/Header";
-import CategoryCarousel from "@/components/CategoryCaraousel";
-import SimilarProperties from "@/components/SimilarProperties";
-import PropertyTypes from "@/components/PropertyTypes";
-import PropertyChoice from "@/components/PropertyChoice";
-import PopularTools from "@/components/PopularTools";
-import SidebarMenu from "@/components/SidebarMenu";
-import PropertyDetail from "@/components/PropertiyDetail";
+import Navbar from "@/components/layout/navbar";
+import Header from "@/components/layout/Header";
+import SidebarMenu from "@/components/layout/SidebarMenu";
+import CategoryCarousel from "@/components/home/CategoryCaraousel";
+import SimilarProperties from "@/components/home/SimilarProperties";
+import PropertyTypes from "@/components/home/PropertyTypes";
+import PropertyChoice from "@/components/home/PropertyChoice";
+import PopularTools from "@/components/home/PopularTools";
+import PropertyDetail from "@/components/property/PropertyDetail";
 const styles = {
   container: "flex-1 bg-slate-50",
 };

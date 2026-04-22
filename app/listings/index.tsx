@@ -2,7 +2,7 @@
 
 import React from "react";
 import { View } from "react-native";
-import ListingsPage from "@/components/ListingPage";
+import ListingsPage from "@/components/property/ListingPage";
 
 export default function ListingsScreen() {
   return (
