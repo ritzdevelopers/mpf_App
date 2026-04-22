@@ -1,6 +1,6 @@
 // components/PropertyDetail/index.tsx
 
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,25 @@ import {
   Image,
   TouchableOpacity,
   Linking,
+  Modal,
+  Animated,
+  Pressable,
+  Dimensions,
+  StatusBar,
+  FlatList,
 } from "react-native";
+import {
+  PinchGestureHandler,
+  PanGestureHandler,
+  GestureHandlerRootView,
+  State,
+} from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { getImageUrl, type Project, type ProjectDetail } from "@/utils/api";
 import { styles } from "./PropertyDetailsUI";
+import { useUser } from "../../utils/authStore";
+import LoginSheet from "../LoginSheet";
 
 function stripHtml(html?: string): string {
   if (!html) return "";
@@ -82,6 +96,270 @@ function OverviewItem({ icon, label, value }: { icon: string; label: string; val
   );
 }
 
+const SCREEN_W = Dimensions.get("window").width;
+const SCREEN_H = Dimensions.get("window").height;
+
+/* Per-slide pinch-to-zoom + pan image */
+function ZoomableImage({
+  uri,
+  onZoomChange,
+}: {
+  uri: string;
+  onZoomChange: (zoomed: boolean) => void;
+}) {
+  const IMG_H = SCREEN_H * 0.65;
+
+  // Scale
+  const scale = useRef(new Animated.Value(1)).current;
+  const lastScale = useRef(1);
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  // Pan
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const lastTranslateX = useRef(0);
+  const lastTranslateY = useRef(0);
+
+  const pinchRef = useRef(null);
+  const panRef = useRef(null);
+
+  /* ── Pinch ── */
+  const onPinchEvent = Animated.event(
+    [{ nativeEvent: { scale } }],
+    { useNativeDriver: true }
+  );
+
+  const onPinchStateChange = (event: any) => {
+    const { state, oldState, scale: gestureScale } = event.nativeEvent;
+
+    if (state === State.ACTIVE) {
+      setIsZoomed(true);
+      onZoomChange(true);
+    }
+
+    if (oldState === State.ACTIVE) {
+      lastScale.current = Math.max(1, Math.min(4, lastScale.current * gestureScale));
+      scale.setValue(lastScale.current);
+
+      if (lastScale.current <= 1.05) {
+        lastScale.current = 1;
+        lastTranslateX.current = 0;
+        lastTranslateY.current = 0;
+        translateX.flattenOffset();
+        translateY.flattenOffset();
+        Animated.parallel([
+          Animated.spring(scale,      { toValue: 1, useNativeDriver: true }),
+          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
+          Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
+        ]).start();
+        setIsZoomed(false);
+        onZoomChange(false);
+      }
+    }
+  };
+
+  /* ── Pan ── */
+  const onPanEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
+    { useNativeDriver: true }
+  );
+
+  const onPanStateChange = (event: any) => {
+    const { state, oldState, translationX: tx, translationY: ty } = event.nativeEvent;
+
+    // Seed offset with saved position so current gesture adds on top of it
+    if (state === State.BEGAN) {
+      translateX.setOffset(lastTranslateX.current);
+      translateX.setValue(0);
+      translateY.setOffset(lastTranslateY.current);
+      translateY.setValue(0);
+    }
+
+    if (oldState === State.ACTIVE) {
+      const s = lastScale.current;
+      // With translate-before-scale, translation is in screen space,
+      // so clamp = half the extra size the image gained from zooming
+      const maxX = (SCREEN_W * (s - 1)) / 2;
+      const maxY = (IMG_H    * (s - 1)) / 2;
+
+      // Clamp final position
+      const newX = Math.max(-maxX, Math.min(maxX, lastTranslateX.current + tx));
+      const newY = Math.max(-maxY, Math.min(maxY, lastTranslateY.current + ty));
+
+      lastTranslateX.current = newX;
+      lastTranslateY.current = newY;
+
+      // Merge offset back into value so next gesture starts clean
+      translateX.flattenOffset();
+      translateY.flattenOffset();
+      translateX.setValue(newX);
+      translateY.setValue(newY);
+    }
+  };
+
+  return (
+    <PanGestureHandler
+      ref={panRef}
+      enabled={isZoomed}
+      onGestureEvent={onPanEvent}
+      onHandlerStateChange={onPanStateChange}
+      simultaneousHandlers={pinchRef}
+      minPointers={1}
+      maxPointers={2}
+      avgTouches
+    >
+      <Animated.View>
+        <PinchGestureHandler
+          ref={pinchRef}
+          onGestureEvent={onPinchEvent}
+          onHandlerStateChange={onPinchStateChange}
+          simultaneousHandlers={panRef}
+        >
+          <Animated.Image
+            source={{ uri }}
+            style={{
+              width: SCREEN_W,
+              height: IMG_H,
+              transform: [{ translateX }, { translateY }, { scale }],
+            }}
+            resizeMode="contain"
+          />
+        </PinchGestureHandler>
+      </Animated.View>
+    </PanGestureHandler>
+  );
+}
+
+function ImageLightbox({
+  uris,
+  initialIndex,
+  visible,
+  onClose,
+}: {
+  uris: string[];
+  initialIndex: number;
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+  const flatRef = useRef<FlatList>(null);
+
+  React.useEffect(() => {
+    if (visible) {
+      setCurrentIndex(initialIndex);
+      setTimeout(() => {
+        flatRef.current?.scrollToIndex({ index: initialIndex, animated: false });
+      }, 50);
+      Animated.timing(opacityAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+    } else {
+      opacityAnim.setValue(0);
+    }
+  }, [visible, initialIndex]);
+
+  const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) setCurrentIndex(viewableItems[0].index ?? 0);
+  }, []);
+
+  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+  return (
+    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
+      <StatusBar backgroundColor="#000" barStyle="light-content" />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Animated.View style={{ flex: 1, backgroundColor: "#000", opacity: opacityAnim }}>
+
+          {/* Swipeable + pinch-zoomable image pager */}
+          <FlatList
+            ref={flatRef}
+            data={uris}
+            keyExtractor={(_, i) => String(i)}
+            horizontal
+            pagingEnabled
+            scrollEnabled={scrollEnabled}
+            showsHorizontalScrollIndicator={false}
+            initialScrollIndex={initialIndex}
+            getItemLayout={(_, index) => ({ length: SCREEN_W, offset: SCREEN_W * index, index })}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={({ item }) => (
+              <Pressable
+                style={{ width: SCREEN_W, height: SCREEN_H, alignItems: "center", justifyContent: "center" }}
+                onPress={onClose}
+              >
+                <ZoomableImage
+                  uri={item}
+                  onZoomChange={(zoomed) => setScrollEnabled(!zoomed)}
+                />
+              </Pressable>
+            )}
+          />
+
+          {/* Close button */}
+          <TouchableOpacity
+            onPress={onClose}
+            style={{
+              position: "absolute",
+              top: 56,
+              right: 20,
+              backgroundColor: "rgba(255,255,255,0.15)",
+              borderRadius: 20,
+              width: 40,
+              height: 40,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="close" size={22} color="#fff" />
+          </TouchableOpacity>
+
+          {/* Counter pill */}
+          <View
+            style={{
+              position: "absolute",
+              top: 60,
+              alignSelf: "center",
+              backgroundColor: "rgba(255,255,255,0.15)",
+              paddingHorizontal: 14,
+              paddingVertical: 5,
+              borderRadius: 20,
+            }}
+          >
+            <Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>
+              {currentIndex + 1} / {uris.length}
+            </Text>
+          </View>
+
+          {/* Dot indicators */}
+          <View
+            style={{
+              position: "absolute",
+              bottom: 60,
+              alignSelf: "center",
+              flexDirection: "row",
+              gap: 6,
+            }}
+          >
+            {uris.map((_, i) => (
+              <View
+                key={i}
+                style={{
+                  width: i === currentIndex ? 20 : 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: i === currentIndex ? "#fff" : "rgba(255,255,255,0.35)",
+                }}
+              />
+            ))}
+          </View>
+
+        </Animated.View>
+      </GestureHandlerRootView>
+    </Modal>
+  );
+}
+
 export default function PropertyDetail({
   project,
   detail,
@@ -92,6 +370,17 @@ export default function PropertyDetail({
   const [liked, setLiked] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const user = useUser();
+
+  const handleBookVisit = () => {
+    if (!user) {
+      setShowLogin(true);
+      return;
+    }
+    // TODO: proceed with real booking flow
+  };
 
   if (!project) {
     return (
@@ -199,6 +488,45 @@ export default function PropertyDetail({
               <View className={styles.aboutBody}>
                 <Text className={styles.aboutText}>{aboutText}</Text>
               </View>
+            </GlassCard>
+          )}
+
+          {/* ── GALLERY ── */}
+          {detail?.galleryImages && detail.galleryImages.length > 0 && (
+            <GlassCard className={styles.cardSpacing}>
+              <SectionHeader
+                icon="images-outline"
+                title="Gallery"
+                color="#e879f9"
+                subtitle={`${detail.galleryImages.length} photos`}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className={styles.galleryScroll}
+              >
+                {detail.galleryImages.map((img, i) => {
+                  const uri = getImageUrl(project.slugURL, img.imageName);
+                  return (
+                    <TouchableOpacity
+                      key={img.id ?? i}
+                      activeOpacity={0.85}
+                      onPress={() => setLightboxIndex(i)}
+                    >
+                      <Image
+                        source={{ uri }}
+                        style={{
+                          width: 200,
+                          height: 130,
+                          borderRadius: 14,
+                          marginRight: 10,
+                        }}
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
             </GlassCard>
           )}
 
@@ -420,10 +748,26 @@ export default function PropertyDetail({
           <Ionicons name="logo-whatsapp" size={22} color="#16a34a" />
         </TouchableOpacity>
 
-        <TouchableOpacity className={styles.ctaBtn}>
+        <TouchableOpacity onPress={handleBookVisit} className={styles.ctaBtn}>
           <Text className={styles.ctaText}>Book Site Visit</Text>
         </TouchableOpacity>
       </View>
+
+      <LoginSheet
+        visible={showLogin}
+        onClose={() => setShowLogin(false)}
+        title="Login to continue"
+        subtitle="Enter your email to book a site visit"
+      />
+
+      {detail?.galleryImages && detail.galleryImages.length > 0 && (
+        <ImageLightbox
+          uris={detail.galleryImages.map((img) => getImageUrl(project.slugURL, img.imageName))}
+          initialIndex={lightboxIndex ?? 0}
+          visible={lightboxIndex !== null}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </View>
   );
 }

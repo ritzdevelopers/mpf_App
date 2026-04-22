@@ -99,10 +99,12 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)"         options={{ headerShown: false }} />
-        <Stack.Screen name="modal"          options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen name="popular_tools"  options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)"              options={{ headerShown: false }} />
+        <Stack.Screen name="modal"               options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen name="popular_tools"       options={{ headerShown: false }} />
+        <Stack.Screen name="listings/index"      options={{ headerShown: false }} />
         <Stack.Screen name="propertyDetail/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="auth"                options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

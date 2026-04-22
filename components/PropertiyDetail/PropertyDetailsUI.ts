@@ -69,6 +69,9 @@ export const styles = {
   /* ── INTRO BLURB ── */
   sectionBlurb: "text-slate-500 text-[12px] mt-1.5 leading-[18px]",
 
+  /* ── GALLERY ── */
+  galleryScroll: "mt-3",
+
   /* ── FLOOR PLANS ── */
   fpList: "mt-2.5",
   fpRow: "flex-row items-center justify-between py-2.5",
