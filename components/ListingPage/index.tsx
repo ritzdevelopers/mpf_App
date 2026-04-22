@@ -1,29 +1,29 @@
 // components/ListingsPage/index.tsx
 
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Modal,
-  ScrollView,
-  Pressable,
-  Platform,
-} from "react-native";
-import { Image } from "expo-image";
-import { Ionicons, Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { styles } from "./listingUI";
 import {
   fetchProjects,
-  getProjectsCache,
   getImageUrl,
+  getProjectsCache,
   prefetchProjectImages,
   type Project,
 } from "@/utils/api";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { styles } from "./listingUI";
 
 const PAGE_SIZE = 20;
 
@@ -38,7 +38,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "name_desc",  label: "Name: Z → A"         },
 ];
 
-const IMAGE_STYLE = { width: "100%" as const, height: 224 };
+const IMAGE_STYLE = { width: "100%" as const, height: 260 };
 
 const PropertyCard = memo(function PropertyCard({ item }: { item: Project }) {
   const onPress = useCallback(() => {

@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import PropertyDetail from "@/components/PropertiyDetail";
-import { fetchProjects, getProjectsCache, type Project } from "@/utils/api";
+import {
+  fetchProjects,
+  getProjectsCache,
+  fetchProjectDetail,
+  type Project,
+  type ProjectDetail,
+} from "@/utils/api";
 
 export default function PropertyDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -13,14 +19,18 @@ export default function PropertyDetailsScreen() {
   const [project, setProject] = useState<Project | null>(
     cached ? findInData(cached) : null
   );
+  const [detail, setDetail] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(!cached);
 
   useEffect(() => {
-    if (cached) return;
-    fetchProjects()
-      .then((data) => setProject(findInData(data)))
-      .catch(() => setProject(null))
-      .finally(() => setLoading(false));
+    if (!cached) {
+      fetchProjects()
+        .then((data) => setProject(findInData(data)))
+        .catch(() => setProject(null))
+        .finally(() => setLoading(false));
+    }
+    const slug = String(id);
+    fetchProjectDetail(slug).then(setDetail);
   }, [id]);
 
   if (loading) {
@@ -32,5 +42,5 @@ export default function PropertyDetailsScreen() {
     );
   }
 
-  return <PropertyDetail project={project} />;
+  return <PropertyDetail project={project} detail={detail} />;
 }

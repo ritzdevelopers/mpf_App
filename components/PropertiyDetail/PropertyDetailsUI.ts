@@ -1,127 +1,147 @@
 // components/PropertyDetail/PropertyDetailsUI.ts
+// Tailwind (NativeWind) class map for the property detail page.
 
 export const styles = {
-  container: "flex-1 bg-[#050816]",
+  /* ── PAGE SHELL ── */
+  page: "flex-1 bg-slate-100",
+  scroll: "",
 
-  /* HERO */
-  imageWrapper: "relative",
-  banner: "w-full h-[430px] rounded-b-[42px]",
+  /* ── NOT FOUND ── */
+  emptyWrap: "flex-1 items-center justify-center bg-slate-50",
+  emptyTitle: "text-slate-400 text-base mt-3.5",
+  emptyBackBtn: "mt-5 px-7 py-3",
+  emptyBackText: "text-slate-800 font-semibold",
 
-  overlay:
-    "absolute inset-0 rounded-b-[42px] bg-gradient-to-b from-black/15 via-black/20 to-[#050816]",
+  /* ── HERO ── */
+  hero: "relative bg-slate-200",
+  heroTopRow: "absolute top-[52px] left-4 right-4 flex-row justify-between",
+  heroRightGroup: "flex-row gap-2",
+  heroBtn:
+    "h-[42px] w-[42px] rounded-2xl bg-white/80 border border-white/90 items-center justify-center shadow",
+  badgeRow: "absolute top-[116px] left-4 flex-row gap-2",
+  badgeBlue: "bg-blue-600 px-3 py-1 rounded-full",
+  badgeGreen: "bg-green-600 px-3 py-1 rounded-full",
+  badgeAmber: "bg-[#d89b38] px-3 py-1 rounded-full",
+  badgeText: "text-white text-[11px] font-bold",
+  titleCard: "absolute bottom-4 left-4 right-4",
+  title: "text-[20px] font-extrabold text-slate-900",
+  locationRow: "flex-row justify-between items-center mt-2",
+  locationGroup: "flex-row items-center flex-1 mr-2",
+  locationText: "text-slate-500 text-xs ml-1",
+  price: "text-[20px] font-extrabold text-[#d89b38]",
 
-  /* TOP ICONS */
-  backBtn:
-    "absolute top-14 left-4 w-11 h-11 rounded-full bg-black/25 border border-white/20 backdrop-blur-xl items-center justify-center",
+  /* ── SHARED CARD ── */
+  content: "px-4 mt-4",
+  glass:
+    "bg-white/90 rounded-[20px] border border-white p-4 shadow-sm",
+  cardSpacing: "mt-3",
 
-  shareBtn:
-    "absolute top-14 right-16 w-11 h-11 rounded-full bg-black/25 border border-white/20 backdrop-blur-xl items-center justify-center",
+  /* ── STAT CHIPS ROW ── */
+  statRow: "flex-row gap-2",
+  statChip: "flex-1 items-center py-3.5 bg-white/90 rounded-[20px] border border-white shadow-sm",
+  statIconWrap: "rounded-xl p-1.5 mb-1.5",
+  statLabel: "text-[10px] text-slate-400 mb-0.5",
+  statValue: "text-[12px] font-bold text-slate-800 text-center",
 
-  likeBtn:
-    "absolute top-14 right-4 w-11 h-11 rounded-full bg-black/25 border border-white/20 backdrop-blur-xl items-center justify-center",
+  /* ── SECTION HEADER ── */
+  sectionHeaderRow: "flex-row items-center mb-0.5",
+  sectionIconWrap: "w-[38px] h-[38px] rounded-xl items-center justify-center mr-3",
+  sectionTextCol: "flex-1",
+  sectionTitle: "text-[16px] font-extrabold text-slate-900 tracking-tight",
+  sectionSubtitle: "text-[11px] text-slate-400 mt-0.5 font-medium",
 
-  /* TAGS */
-  tagRow:
-    "absolute top-32 left-4 flex-row gap-2",
+  /* ── CONFIGURATIONS ── */
+  configRow: "flex-row flex-wrap gap-2 mt-3.5",
+  configChip: "bg-blue-50 border border-blue-200 px-3.5 py-2 rounded-2xl",
+  configText: "text-blue-700 text-xs font-bold",
 
-  blueTag:
-    "px-3 py-1.5 rounded-full bg-blue-500 text-white text-[11px] font-bold",
+  /* ── ABOUT ── */
+  aboutBody: "mt-3.5 border-l-[3px] border-indigo-500 pl-3.5 py-0.5",
+  aboutText: "text-slate-700 text-[13.5px] leading-[22px]",
 
-  greenTag:
-    "px-3 py-1.5 rounded-full bg-emerald-500 text-white text-[11px] font-bold",
+  /* ── OVERVIEW GRID ── */
+  overviewGrid: "flex-row flex-wrap justify-between mt-3.5",
+  overviewItem:
+    "w-[48%] mb-2.5 py-3.5 px-3.5 bg-white/90 rounded-[20px] border border-white shadow-sm",
+  overviewLabel: "text-[10px] text-slate-400 mt-2",
+  overviewValue: "text-[13px] font-bold text-slate-800 mt-1",
 
-  /* FLOATING GLASS CARD */
-  floatingCard:
-    "absolute bottom-5 left-4 right-4 rounded-[30px] px-5 py-5 bg-white/10 border border-white/15 backdrop-blur-3xl",
+  /* ── INTRO BLURB ── */
+  sectionBlurb: "text-slate-500 text-[12px] mt-1.5 leading-[18px]",
 
-  title:
-    "text-[28px] font-extrabold text-white",
+  /* ── FLOOR PLANS ── */
+  fpList: "mt-2.5",
+  fpRow: "flex-row items-center justify-between py-2.5",
+  fpRowDivider: "border-t border-slate-100",
+  fpLeft: "flex-row items-center flex-1",
+  fpIconWrap: "bg-blue-50 rounded-[10px] p-1.5 mr-2.5",
+  fpType: "text-[13px] font-bold text-slate-900",
+  fpArea: "text-[12px] font-semibold text-slate-600",
 
-  price:
-    "text-[24px] font-bold text-blue-300 mt-1",
+  /* ── AMENITIES ── */
+  amList: "flex-row flex-wrap gap-2 mt-2.5",
+  amChip:
+    "flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5",
+  amText: "text-[12px] font-semibold text-slate-700",
+  amToggle: "mt-2.5",
+  amToggleText: "text-blue-600 text-xs font-bold",
 
-  location:
-    "text-sm text-slate-200 ml-1",
+  /* ── LOCATION BENEFITS ── */
+  locList: "mt-2.5",
+  locRow: "flex-row items-center py-2.5",
+  locRowDivider: "border-t border-slate-100",
+  locIconWrap: "bg-emerald-50 rounded-[10px] p-1.5 mr-2.5",
+  locName: "flex-1 text-[13px] text-slate-700 font-medium",
+  locDist: "text-[12px] text-slate-500 font-bold",
 
-  /* COMMON CARD */
-  infoCard:
-    "mx-4 mt-5 px-4 py-5 rounded-[28px] bg-white/5 border border-white/10",
+  /* ── RERA ── */
+  reraRow: "flex-row items-center",
+  reraIconWrap: "bg-emerald-100 rounded-xl p-2 mr-3",
+  reraLabel: "text-[12px] text-slate-500",
+  reraNo: "text-[14px] font-bold text-slate-900 mt-0.5",
+  reraBtn: "bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-[10px]",
+  reraBtnText: "text-emerald-600 text-[11px] font-bold",
 
-  section:
-    "mx-4 mt-4 px-4 py-5 rounded-[28px] bg-white/5 border border-white/10",
+  /* ── WHY INVEST ── */
+  whyRow: "flex-row items-center mt-3",
+  whyIconWrap: "rounded-xl p-2 mr-3",
+  whyText: "text-slate-600 text-[13px] flex-1",
 
-  sectionTitle:
-    "text-white text-lg font-bold mb-4",
+  /* ── BUILDER ── */
+  builderRow: "flex-row items-center mt-2.5",
+  builderLogoWrap:
+    "w-[52px] h-[52px] rounded-2xl overflow-hidden border border-slate-200 mr-3",
+  builderName: "font-bold text-[15px] text-slate-900",
+  builderMeta: "flex-row items-center mt-1",
+  builderMetaText: "text-slate-400 text-[11px] ml-1",
+  builderDesc: "text-slate-700 text-[13px] leading-[20px] mt-3",
 
-  /* QUICK FEATURES */
-  featureRow:
-    "flex-row justify-between",
+  /* ── FAQS ── */
+  faqList: "mt-1.5",
+  faqRow: "",
+  faqRowDivider: "border-t border-slate-100",
+  faqHead: "flex-row items-center py-3",
+  faqQ: "flex-1 text-slate-900 text-[13px] font-semibold",
+  faqA: "text-slate-600 text-[12px] leading-[19px] pb-3",
 
-  featureBox:
-    "w-[31%] rounded-[24px] py-4 items-center bg-white/5 border border-white/10",
+  /* ── EMI TEASER ── */
+  emiCard:
+    "mt-3 mb-[110px] p-4 rounded-[20px] border border-orange-200 bg-orange-50/90 shadow-sm",
+  emiInner: "flex-row items-center justify-between",
+  emiCol: "flex-1",
+  emiLabel: "text-[13px] text-amber-800 font-semibold",
+  emiAmount: "text-[26px] font-extrabold text-[#d89b38] mt-0.5",
+  emiUnit: "text-[13px] font-normal text-slate-400",
+  emiNote: "text-[11px] text-slate-400 mt-1",
+  emiBtn: "bg-[#d89b38] px-4 py-3 rounded-2xl",
+  emiBtnText: "text-white text-[13px] font-bold",
 
-  featureLabel:
-    "text-[11px] text-slate-400 mt-2",
-
-  featureValue:
-    "text-sm font-bold text-white mt-1",
-
-  /* DESCRIPTION */
-  desc:
-    "text-[14px] leading-6 text-slate-300",
-
-  /* GRID */
-  grid:
-    "flex-row flex-wrap justify-between mt-4",
-
-  gridItem:
-    "w-[48%] mb-3 px-4 py-4 rounded-[22px] bg-white/4 border border-white/10",
-
-  gridLabel:
-    "text-[11px] text-slate-400",
-
-  gridValue:
-    "text-white font-bold text-sm mt-1",
-
-  /* AMENITIES */
-  amenityRow:
-    "flex-row flex-wrap justify-between",
-
-  amenityBox:
-    "w-[48%] mb-3 py-4 rounded-[22px] bg-white/4 border border-white/10 items-center",
-
-  amenityText:
-    "text-white text-sm font-semibold",
-
-  /* CONTACT */
-  contactRow:
-    "flex-row items-center",
-
-  avatar:
-    "w-16 h-16 rounded-full mr-3 border border-white/20",
-
-  owner:
-    "text-white text-base font-bold",
-
-  ownerSub:
-    "text-slate-400 text-sm mt-1",
-
-  chatBtn:
-    "px-4 py-2 rounded-2xl bg-blue-500",
-
-  chatText:
-    "text-white font-semibold text-sm",
-
-  /* BOTTOM BAR */
+  /* ── BOTTOM BAR ── */
   bottomBar:
-    "absolute bottom-0 left-0 right-0 px-4 py-3 flex-row items-center bg-[#07101f]/95 border-t border-white/10",
-
-  iconBtn:
-    "w-12 h-12 rounded-2xl bg-white/5 border border-white/10 items-center justify-center mr-3",
-
-  visitBtn:
-    "flex-1 h-12 rounded-2xl bg-blue-500 items-center justify-center shadow-lg",
-
-  visitText:
-    "text-white font-bold text-base",
+    "absolute bottom-0 left-0 right-0 flex-row items-center px-4 py-3 pb-7 gap-2.5 bg-white/95 border-t border-slate-200",
+  iconActionBtn:
+    "w-[50px] h-[50px] rounded-2xl bg-slate-50 border border-slate-200 items-center justify-center",
+  ctaBtn:
+    "flex-1 h-[50px] rounded-2xl bg-[#d89b38] items-center justify-center shadow",
+  ctaText: "text-white font-extrabold text-[15px]",
 };

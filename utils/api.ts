@@ -27,6 +27,100 @@ export interface Project {
   citySlug: string;
 }
 
+/* Richer shape returned by /api/v1/projects/get/{slug} */
+export interface Amenity {
+  id: number;
+  title: string;
+  image: string;
+  altTag?: string;
+}
+export interface FloorPlan {
+  planType: string;
+  areaSqFt: number;
+  areaSqMt: number;
+  pname?: string | null;
+}
+export interface LocationBenefit {
+  benefitName: string;
+  distance: string;
+}
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+}
+export interface GalleryImage {
+  id: number;
+  imageName: string;
+  altTag?: string;
+}
+export interface BannerImage {
+  desktopImage?: string;
+  mobileImage?: string;
+  desktopAltTag?: string;
+  mobileAltTag?: string;
+}
+export interface BuilderInfo {
+  id: number;
+  builderName: string;
+  builderDescription?: string;
+  slugURL?: string;
+}
+
+export interface ProjectDetail {
+  id: number;
+  slugURL: string;
+  projectName: string;
+  projectPrice: string;
+  projectLocality: string;
+  projectConfiguration: string;
+  propertyTypeName: string;
+  city: string;
+  state?: string;
+  country?: string;
+  projectLogo: string;
+  projectThumbnailImage: string;
+  projectStatusId?: number;
+
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeyword?: string;
+
+  amenityDesc?: string;
+  floorPlanDesc?: string;
+  locationDesc?: string;
+  projectWalkthroughDescription?: string;
+
+  reraNo?: string;
+  reraWebsite?: string;
+  ivrNo?: string;
+
+  amenities?: Amenity[];
+  floorPlans?: FloorPlan[];
+  locationBenefits?: LocationBenefit[];
+  faqs?: Faq[];
+  galleryImages?: GalleryImage[];
+  desktopImages?: BannerImage[];
+  mobileImages?: BannerImage[];
+  builder?: BuilderInfo;
+}
+
+const detailCache: Record<string, ProjectDetail> = {};
+
+export async function fetchProjectDetail(slug: string): Promise<ProjectDetail | null> {
+  if (!slug) return null;
+  if (detailCache[slug]) return detailCache[slug];
+  try {
+    const res = await fetch(`https://apis.mypropertyfact.in/api/v1/projects/get/${slug}`);
+    if (!res.ok) return null;
+    const data: ProjectDetail = await res.json();
+    detailCache[slug] = data;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 let cache: Project[] | null = null;
 
 /** Returns the already-loaded cache synchronously (null if not yet fetched). */
