@@ -15,9 +15,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ALL_CITY_NAMES } from "@/data/allCitiesCards";
+import { HOME_PROPERTY_TYPE_OPTIONS } from "@/utils/homePropertyTypeTags";
 import { styles } from "./hederUi";
-
-const PROPERTY_TYPES = ["Commercial", "New Launches", "Residential"];
 const LOCATIONS: string[] = [...ALL_CITY_NAMES];
 const PRICE_RANGES = ["Up to 1 Cr", "1–3 Cr", "3–5 Cr", "Above 5 Cr"];
 
@@ -45,7 +44,7 @@ export default function Header() {
 
   const options =
     modal === "type"
-      ? PROPERTY_TYPES
+      ? [...HOME_PROPERTY_TYPE_OPTIONS]
       : modal === "location"
         ? LOCATIONS
         : modal === "price"
@@ -140,17 +139,35 @@ export default function Header() {
                   ? "Location"
                   : "Price range"}
             </Text>
-            <ScrollView style={{ maxHeight: 280 }}>
-              {options.map((o) => (
-                <TouchableOpacity
-                  key={o}
-                  style={stylesGlass.modalRow}
-                  onPress={() => onPick(o)}
-                >
-                  <Text style={stylesGlass.modalRowText}>{o}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            {modal === "type" ? (
+              <View>
+                {HOME_PROPERTY_TYPE_OPTIONS.map((o, i) => (
+                  <TouchableOpacity
+                    key={o}
+                    style={[
+                      stylesGlass.modalRow,
+                      i > 0 && stylesGlass.modalRowDivider,
+                    ]}
+                    onPress={() => onPick(o)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={stylesGlass.modalRowText}>{o}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <ScrollView style={{ maxHeight: 280 }}>
+                {options.map((o) => (
+                  <TouchableOpacity
+                    key={o}
+                    style={stylesGlass.modalRow}
+                    onPress={() => onPick(o)}
+                  >
+                    <Text style={stylesGlass.modalRowText}>{o}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -226,17 +243,19 @@ const stylesGlass = StyleSheet.create({
     paddingTop: 16,
   },
   modalTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#64748b",
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#94a3b8",
     letterSpacing: 0.6,
-    marginBottom: 8,
+    marginBottom: 4,
     textTransform: "uppercase",
   },
   modalRow: {
-    paddingVertical: 14,
+    paddingVertical: 15,
+  },
+  modalRowDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#f1f5f9",
+    borderTopColor: "#e2e8f0",
   },
   modalRowText: {
     fontSize: 16,

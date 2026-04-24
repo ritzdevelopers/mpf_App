@@ -43,32 +43,30 @@ export const styles = {
     "absolute bottom-3 right-3 flex-row items-center bg-black/55 px-2.5 py-1 rounded-full",
   galleryText: "text-white text-[11px] font-semibold ml-1",
 
-  overlayContent: "absolute left-4 right-4 bottom-3",
-  propertyName: "text-white text-[22px] font-extrabold leading-tight",
-  locationRow: "flex-row items-center mt-1.5",
-  location: "text-amber-100 text-[12px] font-medium ml-1",
-
   /* ── Info block under image ────────────────────── */
-  infoWrap: "p-4",
+  infoWrap: "p-4 pt-5",
 
-  builderRow: "flex-row items-center",
+  /* Developer: logo + name + “View Projects by …” */
+  devRow: "flex-row items-start",
   logoWrap:
-    "w-11 h-11 rounded-2xl bg-slate-900 items-center justify-center",
-  logoLetter: "text-white text-lg font-extrabold",
-  builderTextWrap: "ml-3 flex-1",
-  builderNameRow: "flex-row items-center",
-  builderName: "text-[15px] font-bold text-slate-900 mr-1",
-  verifiedPill:
-    "flex-row items-center bg-blue-50 px-1.5 py-0.5 rounded-full",
-  verifiedText: "text-[10px] font-bold text-blue-700 ml-0.5",
-  viewProject: "text-[11px] text-slate-500 mt-0.5",
-  ratingChip:
-    "flex-row items-center bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200",
-  ratingText: "text-xs font-bold text-amber-700 ml-1",
+    "w-12 h-12 rounded-lg bg-white border border-slate-200 items-center justify-center overflow-hidden",
+  logoLetter: "text-emerald-700 text-base font-extrabold",
+  devTextCol: "ml-3 flex-1",
+  builderName: "text-lg font-bold text-slate-900",
+  viewProjectsBtn: "mt-1 flex-row items-center self-start",
+  viewProjectsText: "text-[13px] font-semibold",
+
+  /* Project: title + location (red pin) */
+  projectBlock: "mt-5",
+  projectTitle: "text-lg font-bold text-slate-900 leading-tight",
+  locationRow: "flex-row items-center mt-1.5",
+  location: "text-[13px] font-medium text-[#1e3a5f] ml-1.5 flex-1",
 
   /* ── Price card ────────────────────────────────── */
   priceBox:
     "flex-row items-center bg-emerald-50 rounded-2xl p-3.5 mt-4 border border-emerald-100",
+  priceBoxColOnly:
+    "bg-emerald-50 rounded-2xl p-3.5 mt-4 border border-emerald-100",
   priceColLeft: "flex-1",
   priceDivider: "w-px h-10 bg-emerald-200 mx-4",
   startFrom:

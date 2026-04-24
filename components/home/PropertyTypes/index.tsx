@@ -1,28 +1,57 @@
 // components/PropertyTypes/index.tsx
 
 import React from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import type { HomePropertyTypeTag } from "@/utils/homePropertyTypeTags";
 
-const propertyTypes = [
+/** One distinct asset per card; image area is fixed + cover so all rows align. */
+const IMAGES = {
+  commercial: require("@/assets/images/b5.jpg"),
+  newLaunches: require("@/assets/images/b4.webp"),
+  residential: require("@/assets/images/b2.webp"),
+} as const;
+
+const propertyTypes: {
+  id: number;
+  title: string;
+  tag: HomePropertyTypeTag;
+  count: string;
+  label: string;
+  bg: string;
+  accent: string;
+  image: (typeof IMAGES)[keyof typeof IMAGES];
+}[] = [
   {
     id: 1,
-    title: "Residential\nApartment",
+    title: "Commercial",
+    tag: "Commercial",
+    count: "2,400+",
+    label: "Properties",
+    bg: "#EEF2F7",
+    accent: "#1e3a5f",
+    image: IMAGES.commercial,
+  },
+  {
+    id: 2,
+    title: "New\nLaunches",
+    tag: "New Launches",
+    count: "1,100+",
+    label: "Properties",
+    bg: "#ECFDF5",
+    accent: "#059669",
+    image: IMAGES.newLaunches,
+  },
+  {
+    id: 3,
+    title: "Residential",
+    tag: "Residential",
     count: "16,000+",
     label: "Properties",
     bg: "#FFF8EC",
     accent: "#d89b38",
-    image: require("@/assets/images/b4.webp"),
-  },
-  {
-    id: 2,
-    title: "Residential\nLand / Plot",
-    count: "3,500+",
-    label: "Properties",
-    bg: "#EDF4FB",
-    accent: "#2563eb",
-    image: require("@/assets/images/b5.jpg"),
+    image: IMAGES.residential,
   },
 ];
 
@@ -32,7 +61,7 @@ export default function PropertyTypes() {
       <View className="flex-row justify-between items-center mb-4">
         <View>
           <Text className="text-xl font-bold text-slate-900">Browse by Type</Text>
-          <Text className="text-xs text-slate-400 mt-0.5">Apartments, Villas and more in Noida</Text>
+          <Text className="text-xs text-slate-400 mt-0.5">Commercial, new launches, residential and more in Noida</Text>
         </View>
         <TouchableOpacity
           onPress={() => router.push("/listings" as any)}
@@ -53,8 +82,13 @@ export default function PropertyTypes() {
             key={item.id}
             className="mr-4 w-52 rounded-2xl overflow-hidden"
             style={{ backgroundColor: item.bg }}
+            activeOpacity={0.9}
+            onPress={() =>
+              router.push({ pathname: "/listings" as any, params: { tag: item.tag } })
+            }
           >
-            <View className="px-4 pt-4 pb-2">
+            {/* Fixed text height so the image row starts at the same y on every card */}
+            <View style={cardStyles.textBlock}>
               <Text className="text-sm font-bold text-slate-900 leading-tight">
                 {item.title}
               </Text>
@@ -65,14 +99,38 @@ export default function PropertyTypes() {
                 <Text className="text-xs text-slate-500 ml-1">{item.label}</Text>
               </View>
             </View>
-            <Image
-              source={item.image}
-              style={{ width: "100%", height: 140 }}
-              resizeMode="cover"
-            />
+            <View style={cardStyles.imageWrap}>
+              <Image
+                source={item.image}
+                style={cardStyles.image}
+                resizeMode="cover"
+              />
+            </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
   );
 }
+
+const IMAGE_H = 140;
+
+const cardStyles = StyleSheet.create({
+  textBlock: {
+    minHeight: 78,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 10,
+    justifyContent: "flex-start",
+  },
+  imageWrap: {
+    width: "100%",
+    height: IMAGE_H,
+    overflow: "hidden",
+    backgroundColor: "rgba(15, 23, 42, 0.06)",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+});

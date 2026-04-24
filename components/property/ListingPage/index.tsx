@@ -12,6 +12,11 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { firstStringParam, resolveCityFromParam } from "@/utils/cityMatch";
+import {
+  HOME_PROPERTY_TYPE_OPTIONS,
+  isHomePropertyTypeTag,
+  projectMatchesHomeTypeTag,
+} from "@/utils/homePropertyTypeTags";
 import { projectMatchesHomePriceRange } from "@/utils/priceRangeFilter";
 import {
   ActivityIndicator,
@@ -20,6 +25,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -104,6 +110,18 @@ const PropertyCard = memo(function PropertyCard({ item }: { item: Project }) {
 
 const keyExtractor = (item: Project) => String(item.id);
 
+const SORT_PARAM_KEYS: readonly SortKey[] = [
+  "default",
+  "price_asc",
+  "price_desc",
+  "name_asc",
+  "name_desc",
+];
+
+function isSortParam(s: string): s is SortKey {
+  return (SORT_PARAM_KEYS as readonly string[]).includes(s);
+}
+
 export default function ListingsPage() {
   const allProjects   = useRef<Project[]>([]);
   const [displayed,   setDisplayed]   = useState<Project[]>([]);
@@ -127,43 +145,51 @@ export default function ListingsPage() {
     city?: string;
     tag?: string;
     priceRange?: string;
+    sort?: string;
   }>();
   const paramCity        = firstStringParam(searchParams.city);
   const paramTag         = firstStringParam(searchParams.tag) ?? null;
   const paramPriceRange  = firstStringParam(searchParams.priceRange) ?? null;
+  const paramSort        = firstStringParam(searchParams.sort) ?? null;
   const lastRouteSig     = useRef<string>("");
 
   // ── unique filter values (derived once data loads) ──
-  const [types,    setTypes]    = useState<string[]>([]);
   const [cities,   setCities]   = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
 
-  /* Home search: /listings?city&tag&priceRange — apply when params change (see Clear → lastRouteSig). */
+  /* Home: /listings?city&tag&priceRange&sort — apply when params change (see Clear → lastRouteSig). */
   useEffect(() => {
-    if (!cities.length) return;
-    const sig = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}`;
-    const hasRoute = !!(paramCity || paramTag || paramPriceRange);
+    const sig = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}|${paramSort ?? ""}`;
+    const hasRoute = !!(paramCity || paramTag || paramPriceRange || paramSort);
     if (!hasRoute) return;
     if (lastRouteSig.current === sig) return;
+    if (!cities.length) return;
     lastRouteSig.current = sig;
 
+    if (paramSort && isSortParam(paramSort)) {
+      setSortBy(paramSort);
+    }
     if (paramCity) {
       const resolved = resolveCityFromParam(paramCity, cities);
       if (resolved) setFilterCity(resolved);
     }
     if (paramTag) {
-      setRouteContextTag(paramTag);
+      if (isHomePropertyTypeTag(paramTag)) {
+        setFilterType(paramTag);
+        setRouteContextTag(null);
+      } else {
+        setRouteContextTag(paramTag);
+      }
     }
     if (paramPriceRange) {
       setFilterPriceRange(paramPriceRange);
     }
-  }, [cities, paramCity, paramTag, paramPriceRange]);
+  }, [cities, paramCity, paramTag, paramPriceRange, paramSort]);
 
   useEffect(() => {
     const cached = getProjectsCache();
     if (cached) {
       allProjects.current = cached;
-      setTypes([...new Set(cached.map((p) => p.propertyTypeName).filter(Boolean))].sort());
       setCities([...new Set(cached.map((p) => p.cityName).filter(Boolean))].sort());
       setStatuses([...new Set(cached.map((p) => p.projectStatusName).filter(Boolean))].sort());
       applyFilters(cached, "", "default", null, null, null, null);
@@ -172,7 +198,6 @@ export default function ListingsPage() {
     fetchProjects()
       .then((data) => {
         allProjects.current = data;
-        setTypes([...new Set(data.map((p) => p.propertyTypeName).filter(Boolean))].sort());
         setCities([...new Set(data.map((p) => p.cityName).filter(Boolean))].sort());
         setStatuses([...new Set(data.map((p) => p.projectStatusName).filter(Boolean))].sort());
         applyFilters(data, "", "default", null, null, null, null);
@@ -197,7 +222,7 @@ export default function ListingsPage() {
         const hay = `${p.projectName} ${p.cityName} ${p.projectLocality} ${p.builderName} ${p.projectConfiguration}`.toLowerCase();
         if (!hay.includes(q2)) return false;
       }
-      if (type   && p.propertyTypeName  !== type)   return false;
+      if (type && !projectMatchesHomeTypeTag(p, type)) return false;
       if (city   && p.cityName          !== city)   return false;
       if (status && p.projectStatusName !== status) return false;
       if (homePriceRange && !projectMatchesHomePriceRange(p.projectPrice, homePriceRange)) {
@@ -348,7 +373,7 @@ export default function ListingsPage() {
               setFilterPriceRange(null);
               setSortBy("default");
               setRouteContextTag(null);
-              lastRouteSig.current = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}`;
+              lastRouteSig.current = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}|${paramSort ?? ""}`;
             }}
             className={styles.clearBtn}
           >
@@ -440,21 +465,18 @@ export default function ListingsPage() {
             {dropdown === "type" && (
               <View>
                 <Text style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6, fontWeight: "700", fontSize: 13, color: "#94a3b8", letterSpacing: 0.5 }}>PROPERTY TYPE</Text>
-                <TouchableOpacity
-                  onPress={() => { setFilterType(null); setDropdown(null); }}
-                  style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: 1, borderTopColor: "#f8fafc" }}
-                >
-                  <Text style={{ fontSize: 14, color: !filterType ? "#d89b38" : "#1e293b", fontWeight: !filterType ? "700" : "400" }}>All Types</Text>
-                  {!filterType && <Ionicons name="checkmark" size={18} color="#d89b38" />}
-                </TouchableOpacity>
-                {types.map((t) => (
+                {HOME_PROPERTY_TYPE_OPTIONS.map((t, i) => (
                   <TouchableOpacity
                     key={t}
                     onPress={() => { setFilterType(t); setDropdown(null); }}
-                    style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: 1, borderTopColor: "#f8fafc" }}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 15,
+                      borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth,
+                      borderTopColor: "#e2e8f0",
+                    }}
                   >
-                    <Text style={{ fontSize: 14, color: filterType === t ? "#d89b38" : "#1e293b", fontWeight: filterType === t ? "700" : "400" }}>{t}</Text>
-                    {filterType === t && <Ionicons name="checkmark" size={18} color="#d89b38" />}
+                    <Text style={{ fontSize: 16, color: "#0f172a", fontWeight: "500" }}>{t}</Text>
                   </TouchableOpacity>
                 ))}
               </View>

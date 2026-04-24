@@ -2,15 +2,14 @@
 
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 const categories = [
-  { id: 1, title: "Buy",       icon: "home-outline",         lib: "Ionicons"      },
-  { id: 2, title: "Rent",      icon: "key-outline",          lib: "Ionicons"      },
-  { id: 3, title: "New Launch",icon: "sparkles-outline",     lib: "Ionicons"      },
-  { id: 4, title: "Plot/Land", icon: "map-outline",          lib: "Ionicons"      },
-  { id: 5, title: "Commercial",icon: "business-outline",     lib: "Ionicons"      },
-  { id: 6, title: "Insights",  icon: "bulb-outline",         lib: "Ionicons"      },
+  { id: 1, title: "Buy",        icon: "home-outline" },
+  { id: 3, title: "New Launch", icon: "sparkles-outline" },
+  { id: 4, title: "Plot/Land",  icon: "map-outline" },
+  { id: 5, title: "Commercial", icon: "business-outline" },
+  { id: 6, title: "Insights",   icon: "bulb-outline" },
 ];
 
 export default function CategoryCarousel() {
