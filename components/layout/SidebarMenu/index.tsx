@@ -99,8 +99,10 @@ export default function SidebarMenu({
                 key={index}
                 className={styles.menuItem}
                 onPress={() => {
-                  router.push(item.route as any);
                   onClose();
+                  requestAnimationFrame(() => {
+                    router.navigate(item.route as any);
+                  });
                 }}
               >
                 <Ionicons

@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import Navbar from "@/components/layout/navbar";
-import Header from "@/components/layout/Header";
-import SidebarMenu from "@/components/layout/SidebarMenu";
 import CategoryCarousel from "@/components/home/CategoryCaraousel";
-import SimilarProperties from "@/components/home/SimilarProperties";
-import PropertyTypes from "@/components/home/PropertyTypes";
-import PropertyChoice from "@/components/home/PropertyChoice";
+import CityProperty from "@/components/home/CityProperty";
+import NewLaunches from "@/components/home/NewLaunches";
 import PopularTools from "@/components/home/PopularTools";
-import PropertyDetail from "@/components/property/PropertyDetail";
+import PropertyChoice from "@/components/home/PropertyChoice";
+import PropertyTypes from "@/components/home/PropertyTypes";
+import SimilarProperties from "@/components/home/SimilarProperties";
+import TopPickCard from "@/components/home/TopPickCard";
+import Header from "@/components/layout/Header";
+import Navbar from "@/components/layout/navbar";
+import SidebarMenu from "@/components/layout/SidebarMenu";
 const styles = {
   container: "flex-1 bg-slate-50",
 };
@@ -31,8 +33,10 @@ export default function HomeScreen() {
         <SimilarProperties />
         <PropertyTypes />
         <PropertyChoice />
+        <TopPickCard/>
         <PopularTools />
-       
+        <NewLaunches />
+        <CityProperty/>
       </ScrollView>
 
       <SidebarMenu

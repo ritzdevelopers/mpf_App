@@ -1,12 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Animated, Dimensions } from 'react-native';
+import { fetchProjects, prefetchProjectImages } from '@/utils/api';
+import { Ionicons } from '@expo/vector-icons';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Dimensions, Text, View } from 'react-native';
 import 'react-native-reanimated';
+import { enableFreeze } from 'react-native-screens';
 import '../global.css';
-import { fetchProjects, prefetchProjectImages } from '@/utils/api';
+
+// Disable react-native-screens' freeze-on-blur optimization globally.
+// On the new architecture it can leave a tab screen stuck with display:none
+// after rapid tab switches, which renders as a blank white screen. We prefer
+// the small memory cost over the blank-screen bug.
+enableFreeze(false);
 
 const MIN_SPLASH_MS = 2000;
 const { width } = Dimensions.get('window');
@@ -104,6 +111,7 @@ export default function RootLayout() {
         <Stack.Screen name="listings/index"      options={{ headerShown: false }} />
         <Stack.Screen name="propertyDetail/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="auth"                options={{ headerShown: false }} />
+        <Stack.Screen name= "AllCities/index"    options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

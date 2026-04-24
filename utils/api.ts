@@ -152,3 +152,4 @@ export async function prefetchProjectImages(
   // expo-image caches to disk, so subsequent <Image> renders are instant.
   await Image.prefetch(urls, "memory-disk");
 }
+

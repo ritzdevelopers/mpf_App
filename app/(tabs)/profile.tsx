@@ -1,30 +1,32 @@
+"use no memo";
 // app/(tabs)/profile.tsx
 
-import React from "react";
-import {
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useUser, signOut } from "../../utils/authStore";
+import React from "react";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { signOut, useUser } from "../../utils/authStore";
 
 const menuItems = [
-  { icon: "heart-outline",         label: "Liked Properties",   value: "39",  color: "#ef4444" },
-  { icon: "time-outline",          label: "Recently Viewed",    value: "248", color: "#2563eb" },
-  { icon: "bookmark-outline",      label: "Saved Projects",     value: "17",  color: "#d89b38" },
-  { icon: "notifications-outline", label: "Alerts & Reminders", value: "5",   color: "#9333ea" },
-  { icon: "document-text-outline", label: "My Enquiries",       value: "12",  color: "#16a34a" },
+  { icon: "heart-outline", label: "Liked Properties", value: "39", color: "#ef4444" },
+  { icon: "time-outline", label: "Recently Viewed", value: "248", color: "#2563eb" },
+  { icon: "bookmark-outline", label: "Saved Projects", value: "17", color: "#d89b38" },
+  { icon: "notifications-outline", label: "Alerts & Reminders", value: "5", color: "#9333ea" },
+  { icon: "document-text-outline", label: "My Enquiries", value: "12", color: "#16a34a" },
 ];
 
 const settingsItems = [
-  { icon: "person-outline",             label: "Edit Profile" },
-  { icon: "shield-checkmark-outline",   label: "Privacy & Security" },
-  { icon: "help-circle-outline",        label: "Help & Support" },
+  { icon: "person-outline", label: "Edit Profile" },
+  { icon: "shield-checkmark-outline", label: "Privacy & Security" },
+  { icon: "help-circle-outline", label: "Help & Support" },
   { icon: "information-circle-outline", label: "About App" },
 ];
 
@@ -33,7 +35,6 @@ export default function ProfilePage() {
   if (!user) return <GuestView />;
   return <LoggedInView user={user} />;
 }
-
 /* ─────────────────────────────────────────────
    LOGGED-IN VIEW
 ───────────────────────────────────────────── */
@@ -52,7 +53,7 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#eef2ff" }}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#eef2ff" }}>
       {/* Decorative glass blobs */}
       <View pointerEvents="none" style={styles.blobIndigo} />
       <View pointerEvents="none" style={styles.blobGold} />
@@ -105,9 +106,9 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
         <View style={{ paddingHorizontal: 16, marginTop: -22 }}>
           <View style={[styles.glass, { flexDirection: "row", gap: 8 }]}>
             {[
-              { val: "248", label: "Seen",  color: "#2563eb" },
-              { val: "39",  label: "Liked", color: "#ef4444" },
-              { val: "17",  label: "Saved", color: "#16a34a" },
+              { val: "248", label: "Seen", color: "#2563eb" },
+              { val: "39", label: "Liked", color: "#ef4444" },
+              { val: "17", label: "Saved", color: "#16a34a" },
             ].map((s, i) => (
               <View key={i} style={styles.statCard}>
                 <Text style={{ fontSize: 22, fontWeight: "800", color: s.color }}>{s.val}</Text>
@@ -206,7 +207,7 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
           <View style={{ height: 40 }} />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -215,14 +216,14 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
 ───────────────────────────────────────────── */
 function GuestView() {
   return (
-    <View style={{ flex: 1, backgroundColor: "#eef2ff" }}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#eef2ff" }}>
       {/* Glass blobs */}
       <View pointerEvents="none" style={styles.blobIndigo} />
       <View pointerEvents="none" style={styles.blobGold} />
       <View pointerEvents="none" style={styles.blobBlue} />
 
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 70, paddingBottom: 40 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ marginBottom: 28 }}>
@@ -266,10 +267,10 @@ function GuestView() {
         <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Why Sign In?</Text>
         <View style={{ gap: 10 }}>
           {[
-            { icon: "heart-outline",         color: "#ef4444", bg: "rgba(239,68,68,0.12)",  title: "Save & Shortlist", desc: "Bookmark properties you love" },
-            { icon: "notifications-outline", color: "#9333ea", bg: "rgba(147,51,234,0.12)", title: "Smart Alerts",     desc: "Get notified on new launches & price drops" },
-            { icon: "trending-up-outline",   color: "#2563eb", bg: "rgba(37,99,235,0.12)",  title: "Price Insights",   desc: "Track market trends in your locality" },
-            { icon: "document-text-outline", color: "#16a34a", bg: "rgba(22,163,74,0.12)",  title: "My Enquiries",     desc: "Track all your property inquiries" },
+            { icon: "heart-outline", color: "#ef4444", bg: "rgba(239,68,68,0.12)", title: "Save & Shortlist", desc: "Bookmark properties you love" },
+            { icon: "notifications-outline", color: "#9333ea", bg: "rgba(147,51,234,0.12)", title: "Smart Alerts", desc: "Get notified on new launches & price drops" },
+            { icon: "trending-up-outline", color: "#2563eb", bg: "rgba(37,99,235,0.12)", title: "Price Insights", desc: "Track market trends in your locality" },
+            { icon: "document-text-outline", color: "#16a34a", bg: "rgba(22,163,74,0.12)", title: "My Enquiries", desc: "Track all your property inquiries" },
           ].map((f, i) => (
             <View key={i} style={[styles.glass, { flexDirection: "row", alignItems: "center", paddingVertical: 14 }]}>
               <View style={{ backgroundColor: f.bg, borderRadius: 14, padding: 10, marginRight: 14 }}>
@@ -283,7 +284,7 @@ function GuestView() {
           ))}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
   /* Hero */
   hero: {
     backgroundColor: "#0f172a",
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 50,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 36,

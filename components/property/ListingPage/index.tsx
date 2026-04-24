@@ -9,8 +9,10 @@ import {
 } from "@/utils/api";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { firstStringParam, resolveCityFromParam } from "@/utils/cityMatch";
+import { projectMatchesHomePriceRange } from "@/utils/priceRangeFilter";
 import {
   ActivityIndicator,
   FlatList,
@@ -117,12 +119,45 @@ export default function ListingsPage() {
   const [filterType,  setFilterType]  = useState<string | null>(null);
   const [filterCity,  setFilterCity]  = useState<string | null>(null);
   const [filterStatus,setFilterStatus]= useState<string | null>(null);
+  const [filterPriceRange, setFilterPriceRange] = useState<string | null>(null);
   const [dropdown,    setDropdown]    = useState<DropdownKey>(null);
+  const [routeContextTag, setRouteContextTag] = useState<string | null>(null);
+
+  const searchParams     = useLocalSearchParams<{
+    city?: string;
+    tag?: string;
+    priceRange?: string;
+  }>();
+  const paramCity        = firstStringParam(searchParams.city);
+  const paramTag         = firstStringParam(searchParams.tag) ?? null;
+  const paramPriceRange  = firstStringParam(searchParams.priceRange) ?? null;
+  const lastRouteSig     = useRef<string>("");
 
   // ── unique filter values (derived once data loads) ──
   const [types,    setTypes]    = useState<string[]>([]);
   const [cities,   setCities]   = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
+
+  /* Home search: /listings?city&tag&priceRange — apply when params change (see Clear → lastRouteSig). */
+  useEffect(() => {
+    if (!cities.length) return;
+    const sig = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}`;
+    const hasRoute = !!(paramCity || paramTag || paramPriceRange);
+    if (!hasRoute) return;
+    if (lastRouteSig.current === sig) return;
+    lastRouteSig.current = sig;
+
+    if (paramCity) {
+      const resolved = resolveCityFromParam(paramCity, cities);
+      if (resolved) setFilterCity(resolved);
+    }
+    if (paramTag) {
+      setRouteContextTag(paramTag);
+    }
+    if (paramPriceRange) {
+      setFilterPriceRange(paramPriceRange);
+    }
+  }, [cities, paramCity, paramTag, paramPriceRange]);
 
   useEffect(() => {
     const cached = getProjectsCache();
@@ -131,7 +166,7 @@ export default function ListingsPage() {
       setTypes([...new Set(cached.map((p) => p.propertyTypeName).filter(Boolean))].sort());
       setCities([...new Set(cached.map((p) => p.cityName).filter(Boolean))].sort());
       setStatuses([...new Set(cached.map((p) => p.projectStatusName).filter(Boolean))].sort());
-      applyFilters(cached, "", "default", null, null, null);
+      applyFilters(cached, "", "default", null, null, null, null);
       return;
     }
     fetchProjects()
@@ -140,7 +175,7 @@ export default function ListingsPage() {
         setTypes([...new Set(data.map((p) => p.propertyTypeName).filter(Boolean))].sort());
         setCities([...new Set(data.map((p) => p.cityName).filter(Boolean))].sort());
         setStatuses([...new Set(data.map((p) => p.projectStatusName).filter(Boolean))].sort());
-        applyFilters(data, "", "default", null, null, null);
+        applyFilters(data, "", "default", null, null, null, null);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -153,7 +188,8 @@ export default function ListingsPage() {
     sort: SortKey,
     type: string | null,
     city: string | null,
-    status: string | null
+    status: string | null,
+    homePriceRange: string | null
   ) {
     const q2 = q.toLowerCase().trim();
     let result = all.filter((p) => {
@@ -164,6 +200,9 @@ export default function ListingsPage() {
       if (type   && p.propertyTypeName  !== type)   return false;
       if (city   && p.cityName          !== city)   return false;
       if (status && p.projectStatusName !== status) return false;
+      if (homePriceRange && !projectMatchesHomePriceRange(p.projectPrice, homePriceRange)) {
+        return false;
+      }
       return true;
     });
 
@@ -183,8 +222,16 @@ export default function ListingsPage() {
   // re-apply whenever any filter changes
   useEffect(() => {
     if (!allProjects.current.length) return;
-    applyFilters(allProjects.current, search, sortBy, filterType, filterCity, filterStatus);
-  }, [search, sortBy, filterType, filterCity, filterStatus]);
+    applyFilters(
+      allProjects.current,
+      search,
+      sortBy,
+      filterType,
+      filterCity,
+      filterStatus,
+      filterPriceRange
+    );
+  }, [search, sortBy, filterType, filterCity, filterStatus, filterPriceRange]);
 
   const loadMore = useCallback(() => {
     const total = filteredRef.current.length;
@@ -201,7 +248,12 @@ export default function ListingsPage() {
     }, 80);
   }, [loadingMore]);
 
-  const activeFilterCount = [filterType, filterCity, filterStatus].filter(Boolean).length;
+  const activeFilterCount = [
+    filterType,
+    filterCity,
+    filterStatus,
+    filterPriceRange,
+  ].filter(Boolean).length;
 
   const renderCard = useCallback(
     ({ item }: { item: Project }) => <PropertyCard item={item} />,
@@ -289,7 +341,15 @@ export default function ListingsPage() {
         {/* Clear all */}
         {(activeFilterCount > 0 || sortBy !== "default") && (
           <TouchableOpacity
-            onPress={() => { setFilterType(null); setFilterCity(null); setFilterStatus(null); setSortBy("default"); }}
+            onPress={() => {
+              setFilterType(null);
+              setFilterCity(null);
+              setFilterStatus(null);
+              setFilterPriceRange(null);
+              setSortBy("default");
+              setRouteContextTag(null);
+              lastRouteSig.current = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}`;
+            }}
             className={styles.clearBtn}
           >
             <Ionicons name="close" size={13} color="#ef4444" />
@@ -302,6 +362,8 @@ export default function ListingsPage() {
       <Text className={styles.resultText}>
         {filteredRef.current.length} RESULTS
         {filterCity ? ` in ${filterCity}` : ""}
+        {filterPriceRange ? ` · ${filterPriceRange}` : ""}
+        {routeContextTag ? ` · ${routeContextTag}` : ""}
         {filterType ? ` · ${filterType}` : ""}
         {filterStatus ? ` · ${filterStatus}` : ""}
         {search ? ` · "${search}"` : ""}
@@ -316,7 +378,7 @@ export default function ListingsPage() {
       )}
     </View>
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [search, sortBy, filterType, filterCity, filterStatus, dropdown, displayed.length, loading]);
+  ), [search, sortBy, filterType, filterCity, filterStatus, filterPriceRange, routeContextTag, paramCity, paramTag, paramPriceRange, dropdown, displayed.length, loading]);
 
   if (loading) {
     return (

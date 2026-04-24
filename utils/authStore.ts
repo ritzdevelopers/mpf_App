@@ -1,3 +1,4 @@
+"use no memo";
 // utils/authStore.ts
 // Tiny in-memory auth store. Swap with real API / AsyncStorage later.
 import { useEffect, useState } from "react";

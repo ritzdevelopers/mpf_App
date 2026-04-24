@@ -488,7 +488,10 @@ export default function PropertyDetail({
   const configurations = project.projectConfiguration.split(",").map((c) => c.trim()).filter(Boolean);
   const bannerUri    = getImageUrl(project.slugURL, project.projectBannerImage || project.projectThumbnailImage);
   const thumbnailUri = getImageUrl(project.slugURL, project.projectThumbnailImage);
-  const emi = Math.round(parseFloat(project.projectPrice) * 100000 * 8.5 / 1200);
+  const priceNum = parseFloat(project.projectPrice);
+  const isNumericPrice = !isNaN(priceNum) && priceNum > 0;
+  const priceDisplay = isNumericPrice ? `₹${project.projectPrice} Cr` : "On Request";
+  const emi = isNumericPrice ? Math.round(priceNum * 100000 * 8.5 / 1200) : 0;
   const aboutText = stripHtml(detail?.projectWalkthroughDescription) || detail?.metaDescription || "";
 
   return (
@@ -523,44 +526,47 @@ export default function PropertyDetail({
             </View>
           </View>
 
-          {/* badges */}
-          <View className={styles.badgeRow}>
-            <View className={styles.badgePill}>
-              <View className={styles.badgeDotBlue} />
-              <Text className={styles.badgeTextBlue}>{project.propertyTypeName}</Text>
-            </View>
-            <View className={styles.badgePill}>
-              <View
-                className={
-                  project.projectStatusName === "Ready To Move"
-                    ? styles.badgeDotGreen
-                    : styles.badgeDotAmber
-                }
-              />
-              <Text
-                className={
-                  project.projectStatusName === "Ready To Move"
-                    ? styles.badgeTextGreen
-                    : styles.badgeTextAmber
-                }
-              >
-                {project.projectStatusName}
-              </Text>
-            </View>
-          </View>
-
           {/* Glass title card pinned to hero bottom */}
           <View className={styles.titleCard}>
             <GlassCard>
-              <Text className={styles.title} numberOfLines={2}>
-                {project.projectName}
-              </Text>
-              <View className={styles.locationRow}>
+              <View className={styles.titleRow}>
+                <Text className={`${styles.title} ${styles.titleFlex}`} numberOfLines={1}>
+                  {project.projectName}
+                </Text>
                 <View className={styles.locationGroup}>
                   <Ionicons name="location-outline" size={13} color="#94a3b8" />
-                  <Text className={styles.locationText} numberOfLines={1}>{project.projectAddress}</Text>
+                  <Text className={styles.locationText} numberOfLines={1}>
+                    {project.projectAddress}
+                  </Text>
                 </View>
-                <Text className={styles.price}>₹{project.projectPrice} Cr</Text>
+              </View>
+
+              <View className={styles.locationRow}>
+                <View className={styles.badgeRow}>
+                  <View className={styles.badgePill}>
+                    <View className={styles.badgeDotBlue} />
+                    <Text className={styles.badgeTextBlue}>{project.propertyTypeName}</Text>
+                  </View>
+                  <View className={styles.badgePill}>
+                    <View
+                      className={
+                        project.projectStatusName === "Ready To Move"
+                          ? styles.badgeDotGreen
+                          : styles.badgeDotAmber
+                      }
+                    />
+                    <Text
+                      className={
+                        project.projectStatusName === "Ready To Move"
+                          ? styles.badgeTextGreen
+                          : styles.badgeTextAmber
+                      }
+                    >
+                      {project.projectStatusName}
+                    </Text>
+                  </View>
+                </View>
+                <Text className={styles.price} numberOfLines={1}>{priceDisplay}</Text>
               </View>
             </GlassCard>
           </View>
@@ -638,7 +644,7 @@ export default function PropertyDetail({
             <View className={styles.overviewGrid}>
               <OverviewItem icon="map-outline"    label="Locality"       value={project.projectLocality} />
               <OverviewItem icon="person-outline" label="Builder"        value={project.builderName} />
-              <OverviewItem icon="cash-outline"   label="Starting Price" value={`₹${project.projectPrice} Cr`} />
+              <OverviewItem icon="cash-outline"   label="Starting Price" value={priceDisplay} />
               <OverviewItem icon="home-outline"   label="City"           value={project.cityName} />
             </View>
           </GlassCard>

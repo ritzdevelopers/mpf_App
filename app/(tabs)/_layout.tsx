@@ -1,22 +1,40 @@
-import { Tabs } from 'expo-router';
-import React, { useRef } from 'react';
-import { Animated } from 'react-native';
 import { HapticTab } from '@/components/common/haptic-tab';
 import { IconSymbol } from '@/components/common/ui/icon-symbol';
-import type { ComponentProps } from 'react';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Tabs } from 'expo-router';
+import type { ComponentProps } from 'react';
+import React, { useRef } from 'react';
+import { Animated } from 'react-native';
 
-function AnimatedTabIcon({ name, color, size, focused }: { name: ComponentProps<typeof IconSymbol>['name']; color: string; size: number; focused: boolean }) {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+function AnimatedTabIcon({
+  name,
+  color,
+  size,
+  focused,
+}: {
+  name: ComponentProps<typeof IconSymbol>['name'];
+  color: string;
+  size: number;
+  focused: boolean;
+}) {
+  const scaleAnim = useRef(new Animated.Value(focused ? 1.2 : 1)).current;
+  const prevFocused = useRef(focused);
 
   React.useEffect(() => {
-    Animated.spring(scaleAnim, {
+    if (prevFocused.current === focused) return;
+
+    prevFocused.current = focused;
+
+    const anim = Animated.spring(scaleAnim, {
       toValue: focused ? 1.2 : 1,
       useNativeDriver: true,
       speed: 20,
       bounciness: 8,
-    }).start();
+    });
+
+    anim.start();
+
+    return () => anim.stop();
   }, [focused]);
 
   return (
@@ -36,7 +54,16 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarActiveTintColor: "#d89b38",
         tabBarInactiveTintColor: "#8e8e8e",
-        animation: 'fade',
+        // Keep transitions off: on new arch + react-native-screens the tab
+        // fade/shift animation races with screen freeze/unfreeze and sometimes
+        // leaves the target screen blank after ~5 rapid switches.
+        animation: 'none',
+        // Mount every tab on first render instead of lazily on focus — removes
+        // the second failure mode where a freshly-focused lazy tab never
+        // finishes attaching when the animation is interrupted.
+        lazy: false,
+        // Belt-and-suspenders with enableFreeze(false) in app/_layout.tsx.
+        freezeOnBlur: false,
 
         tabBarStyle: {
           height: 74,
