@@ -11,13 +11,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { setUser } from "@/utils/authStore";
-
-const DUMMY_EMAIL    = "test@realestate.com";
-const DUMMY_PASSWORD = "Test@123";
+import { applyLoginResponse } from "@/utils/authStore";
+import { getApiErrorMessage, loginRequest } from "@/services/authApi";
 
 const { height: SCREEN_H } = Dimensions.get("window");
 
@@ -40,6 +39,7 @@ export default function LoginSheet({
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError]       = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [focus, setFocus]       = useState<"email" | "password" | null>(null);
 
   const slide = useRef(new Animated.Value(SCREEN_H)).current;
@@ -60,27 +60,25 @@ export default function LoginSheet({
     }
   }, [visible]);
 
-  const submit = () => {
+  const submit = async () => {
     setError("");
     if (!email || !password) {
       setError("Please enter your email and password.");
       return;
     }
-    if (
-      email.toLowerCase().trim() !== DUMMY_EMAIL ||
-      password !== DUMMY_PASSWORD
-    ) {
-      setError("Invalid email or password.");
-      return;
+    setSubmitting(true);
+    try {
+      const data = await loginRequest(email, password);
+      await applyLoginResponse(data);
+      setEmail("");
+      setPassword("");
+      onClose();
+      onSuccess?.();
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e));
+    } finally {
+      setSubmitting(false);
     }
-    setUser({
-      name: email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-      email: email.toLowerCase().trim(),
-    });
-    setEmail("");
-    setPassword("");
-    onClose();
-    onSuccess?.();
   };
 
   return (
@@ -248,20 +246,28 @@ export default function LoginSheet({
 
           {/* Continue */}
           <TouchableOpacity
-            onPress={submit}
+            onPress={() => void submit()}
+            disabled={submitting}
             activeOpacity={0.85}
             style={{
-              backgroundColor: "#4361EE",
+              backgroundColor: submitting ? "#94a3b8" : "#4361EE",
               borderRadius: 16, paddingVertical: 15,
               alignItems: "center", marginTop: 4,
+              flexDirection: "row",
+              justifyContent: "center",
+              gap: 8,
               shadowColor: "#4361EE",
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.3, shadowRadius: 12, elevation: 5,
             }}
           >
-            <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800", letterSpacing: 0.3 }}>
-              Continue
-            </Text>
+            {submitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800", letterSpacing: 0.3 }}>
+                Continue
+              </Text>
+            )}
           </TouchableOpacity>
 
           {/* Divider */}
@@ -292,20 +298,6 @@ export default function LoginSheet({
               Create New Account
             </Text>
           </TouchableOpacity>
-
-          {/* Demo hint */}
-          <View style={{
-            marginTop: 14, padding: 10, borderRadius: 12,
-            backgroundColor: "rgba(67,97,238,0.08)",
-            borderWidth: 1, borderColor: "rgba(67,97,238,0.15)",
-          }}>
-            <Text style={{ color: "#4361EE", fontSize: 10, fontWeight: "700", marginBottom: 3, letterSpacing: 0.5 }}>
-              DEMO CREDENTIALS
-            </Text>
-            <Text style={{ color: "#1e293b", fontSize: 11 }}>
-              test@realestate.com · Test@123
-            </Text>
-          </View>
         </Animated.View>
       </KeyboardAvoidingView>
     </Modal>

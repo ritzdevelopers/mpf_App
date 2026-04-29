@@ -10,15 +10,14 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { setUser } from "../utils/authStore";
+import { applyLoginResponse } from "../utils/authStore";
+import { getApiErrorMessage, loginRequest, signupRequest } from "@/services/authApi";
 
 type Tab = "login" | "signup";
-
-const DUMMY_EMAIL    = "test@realestate.com";
-const DUMMY_PASSWORD = "Test@123";
 
 export default function AuthScreen() {
   const { mode } = useLocalSearchParams<{ mode?: string }>();
@@ -32,6 +31,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError]     = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(mode === "signup" ? 1 : 0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -47,7 +47,7 @@ export default function AuthScreen() {
     ]).start();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
     if (tab === "login") {
       if (!email || !password) {
@@ -55,36 +55,45 @@ export default function AuthScreen() {
         shake();
         return;
       }
-      if (
-        email.toLowerCase().trim() !== DUMMY_EMAIL ||
-        password !== DUMMY_PASSWORD
-      ) {
-        setError("Invalid email or password.\nTry: test@realestate.com / Test@123");
+      setSubmitting(true);
+      try {
+        const data = await loginRequest(email, password);
+        await applyLoginResponse(data);
+        router.replace("/(tabs)/profile" as any);
+      } catch (e: unknown) {
+        setError(getApiErrorMessage(e));
         shake();
-        return;
+      } finally {
+        setSubmitting(false);
       }
-      setUser({
-        name: "Simranpreet Singh",
-        email: email.toLowerCase().trim(),
-      });
-      router.replace("/(tabs)/profile" as any);
-    } else {
-      if (!name || !phone || !email || !password || !confirm) {
-        setError("Please fill in all fields.");
-        shake();
-        return;
-      }
-      if (password !== confirm) {
-        setError("Passwords do not match.");
-        shake();
-        return;
-      }
-      setUser({
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
+      return;
+    }
+
+    if (!name || !phone || !email || !password || !confirm) {
+      setError("Please fill in all fields.");
+      shake();
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      shake();
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const data = await signupRequest({
+        fullName: name.trim(),
         phone: phone.trim(),
+        email,
+        password,
       });
+      await applyLoginResponse(data);
       router.replace("/(tabs)/profile" as any);
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e));
+      shake();
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -259,7 +268,11 @@ export default function AuthScreen() {
             )}
 
             {tab === "login" && (
-              <TouchableOpacity style={{ alignSelf: "flex-end", marginBottom: 16, marginTop: -4 }}>
+              <TouchableOpacity
+                onPress={() => router.push("/ForgetPassword")}
+                style={{ alignSelf: "flex-end", marginBottom: 16, marginTop: -4 }}
+                hitSlop={{ top: 8, bottom: 8 }}
+              >
                 <Text style={{ color: "#4361EE", fontSize: 13, fontWeight: "600" }}>
                   Forgot Password?
                 </Text>
@@ -281,20 +294,28 @@ export default function AuthScreen() {
 
             {/* ── PRIMARY CTA ── */}
             <TouchableOpacity
-              onPress={handleSubmit}
+              onPress={() => void handleSubmit()}
+              disabled={submitting}
               activeOpacity={0.85}
               style={{
-                backgroundColor: "#4361EE",
+                backgroundColor: submitting ? "#94a3b8" : "#4361EE",
                 borderRadius: 16,
                 paddingVertical: 16,
                 alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 10,
                 shadowColor: "#4361EE", shadowOffset: { width: 0, height: 8 },
                 shadowOpacity: 0.35, shadowRadius: 16, elevation: 6,
               }}
             >
-              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800", letterSpacing: 0.3 }}>
-                {tab === "login" ? "Sign In" : "Create Account"}
-              </Text>
+              {submitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800", letterSpacing: 0.3 }}>
+                  {tab === "login" ? "Sign In" : "Create Account"}
+                </Text>
+              )}
             </TouchableOpacity>
 
             {/* ── DIVIDER ── */}
@@ -324,22 +345,6 @@ export default function AuthScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Dummy hint (dev only) */}
-          {tab === "login" && (
-            <View style={{
-              marginTop: 16, padding: 12, borderRadius: 12,
-              backgroundColor: "rgba(67,97,238,0.08)",
-              borderWidth: 1, borderColor: "rgba(67,97,238,0.15)",
-            }}>
-              <Text style={{ color: "#4361EE", fontSize: 11, fontWeight: "700", marginBottom: 4 }}>
-                DEMO CREDENTIALS
-              </Text>
-              <Text style={{ color: "#1e293b", fontSize: 12 }}>
-                Email: test@realestate.com{"\n"}Password: Test@123
-              </Text>
-            </View>
-          )}
 
         </ScrollView>
       </KeyboardAvoidingView>

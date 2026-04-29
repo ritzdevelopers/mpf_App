@@ -47,7 +47,7 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
       "Are you sure you want to sign out?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Sign Out", style: "destructive", onPress: () => signOut() },
+        { text: "Sign Out", style: "destructive", onPress: () => void signOut() },
       ]
     );
   };

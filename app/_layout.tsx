@@ -1,4 +1,5 @@
 import { fetchProjects, prefetchProjectImages } from '@/utils/api';
+import { hydrateSession } from '@/utils/authStore';
 import { Ionicons } from '@expo/vector-icons';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
@@ -98,7 +99,8 @@ export default function RootLayout() {
     const apiFetch = fetchProjects()
       .then((projects) => prefetchProjectImages(projects))
       .catch(() => null);
-    Promise.all([minWait, apiFetch]).then(() => setSplashDone(true));
+    const session = hydrateSession().catch(() => null);
+    Promise.all([minWait, apiFetch, session]).then(() => setSplashDone(true));
   }, []);
 
   if (!splashDone) return <SplashOverlay />;
@@ -110,7 +112,9 @@ export default function RootLayout() {
         <Stack.Screen name="popular_tools"       options={{ headerShown: false }} />
         <Stack.Screen name="listings/index"      options={{ headerShown: false }} />
         <Stack.Screen name="propertyDetail/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="auth"                options={{ headerShown: false }} />
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="ForgetPassword/index" options={{ headerShown: false }} />
+        <Stack.Screen name="reset-password" options={{ headerShown: false }} />
         <Stack.Screen name= "AllCities/index"    options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
