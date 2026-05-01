@@ -1,28 +1,28 @@
 // components/SimilarProperties/index.tsx
 
-import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Image } from "expo-image";
+import { fetchProjects, getImageUrl, getProjectsCache, type Project } from "@/utils/api";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router } from "expo-router";
-import { fetchProjects, getProjectsCache, getImageUrl, type Project } from "@/utils/api";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const STATUS_COLORS: Record<string, string> = {
-  "Ready To Move":    "#16a34a",
+  "Ready To Move": "#16a34a",
   "Under Construction": "#d89b38",
-  "New Launch":       "#2563eb",
-  "Possession Soon":  "#9333ea",
+  "New Launch": "#2563eb",
+  "Possession Soon": "#9333ea",
 };
 
 export default function SimilarProperties() {
   const cached = getProjectsCache();
   const [projects, setProjects] = useState<Project[]>(
-    cached ? cached.slice(0, 6) : []
+    cached?.length ? cached.slice(0, 6) : []
   );
-  const [loading, setLoading] = useState(!cached);
+  const [loading, setLoading] = useState(!cached?.length);
 
   useEffect(() => {
-    if (cached) return; // already warm — skip fetch + spinner
+    if (cached?.length) return; // already warm — skip fetch + spinner
     fetchProjects()
       .then((data) => setProjects(data.slice(0, 6)))
       .finally(() => setLoading(false));

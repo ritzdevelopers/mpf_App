@@ -3,6 +3,7 @@ import { ScrollView, View } from "react-native";
 
 import CategoryCarousel from "@/components/home/CategoryCaraousel";
 import CityProperty from "@/components/home/CityProperty";
+import EnquiryMiniCard from "@/components/home/EnquiryMiniCard";
 import NewLaunches from "@/components/home/NewLaunches";
 import PopularTools from "@/components/home/PopularTools";
 import PropertyChoice from "@/components/home/PropertyChoice";
@@ -12,16 +13,19 @@ import TopPickCard from "@/components/home/TopPickCard";
 import Header from "@/components/layout/Header";
 import Navbar from "@/components/layout/navbar";
 import SidebarMenu from "@/components/layout/SidebarMenu";
+import ContactFormModal from "@/components/property/ContactFormModal";
+
 const styles = {
   container: "flex-1 bg-slate-50",
 };
 
 export default function HomeScreen() {
   const [open, setOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <View className="flex-1">
-      
+
       <ScrollView
         className={styles.container}
         showsVerticalScrollIndicator={false}
@@ -29,19 +33,27 @@ export default function HomeScreen() {
         <Navbar onMenuPress={() => setOpen(true)} />
         <CategoryCarousel />
         <Header />
-    
+
         <SimilarProperties />
         <PropertyTypes />
         <PropertyChoice />
-        <TopPickCard/>
+        <TopPickCard />
         <PopularTools />
         <NewLaunches />
-        <CityProperty/>
+        <CityProperty />
+        <EnquiryMiniCard onPress={() => setShowForm(true)} />
       </ScrollView>
+
+
 
       <SidebarMenu
         visible={open}
         onClose={() => setOpen(false)}
+      />
+
+      <ContactFormModal
+        visible={showForm}
+        onClose={() => setShowForm(false)}
       />
 
     </View>

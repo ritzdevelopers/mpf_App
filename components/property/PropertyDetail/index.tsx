@@ -1,33 +1,33 @@
 // components/PropertyDetail/index.tsx
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import { getImageUrl, type Project, type ProjectDetail } from "@/utils/api";
+import { useUser } from "@/utils/authStore";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import React, { useCallback, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  FlatList,
   Linking,
   Modal,
-  Animated,
   Pressable,
-  Dimensions,
+  ScrollView,
   StatusBar,
-  FlatList,
-  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
-import { Image } from "expo-image";
 import {
-  PinchGestureHandler,
-  PanGestureHandler,
   GestureHandlerRootView,
+  PanGestureHandler,
+  PinchGestureHandler,
   State,
 } from "react-native-gesture-handler";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { getImageUrl, type Project, type ProjectDetail } from "@/utils/api";
+import ContactFormModal from "../ContactFormModal";
 import { styles } from "./PropertyDetailsUI";
-import { useUser } from "@/utils/authStore";
-import LoginSheet from "../LoginSheet";
 
 function stripHtml(html?: string): string {
   if (!html) return "";
@@ -51,78 +51,41 @@ function GlassCard({ children, className = "" }: { children: React.ReactNode; cl
   return <View className={`${styles.glass} ${className}`}>{children}</View>;
 }
 
-/* ── Animated shimmer overlay (no LinearGradient required) ── */
-function ShimmerOverlay({ width, height, borderRadius = 0 }: { width: number; height: number; borderRadius?: number }) {
-  const translate = useRef(new Animated.Value(-width)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.timing(translate, {
-        toValue: width,
-        duration: 1200,
-        useNativeDriver: true,
-      })
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [width, translate]);
-
+/* ── Simple Static Skeleton ── */
+function SkeletonPlaceholder({ width, height, borderRadius = 0, showSpinner = true }: { width: number | string; height: number; borderRadius?: number; showSpinner?: boolean }) {
   return (
     <View
-      pointerEvents="none"
       style={{
-        position: "absolute",
-        top: 0, left: 0,
-        width, height, borderRadius,
-        backgroundColor: "#e2e8f0",
+        width: width as any, height, borderRadius,
+        backgroundColor: "#f1f5f9",
         overflow: "hidden",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
-      <Animated.View
-        style={{
-          position: "absolute",
-          top: 0, bottom: 0,
-          width: width * 0.55,
-          backgroundColor: "rgba(255,255,255,0.55)",
-          transform: [{ translateX: translate }, { skewX: "-20deg" }],
-        }}
-      />
+      {showSpinner && <ActivityIndicator size="small" color="#d89b38" />}
     </View>
   );
 }
 
-/* ── Gallery image card with shimmer skeleton until loaded ── */
+/*
+ * Gallery image card.
+ */
 function GalleryThumb({ uri, onPress }: { uri: string; onPress: () => void }) {
-  const [loaded, setLoaded] = useState(false);
-  const fade = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (loaded) {
-      Animated.timing(fade, {
-        toValue: 0,
-        duration: 280,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [loaded, fade]);
+  const [loading, setLoading] = useState(true);
 
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={{ marginRight: 10 }}>
-      <View style={{ width: 200, height: 130, borderRadius: 14, overflow: "hidden", backgroundColor: "#e2e8f0" }}>
+      <View style={{ width: 200, height: 130, borderRadius: 14, overflow: "hidden", backgroundColor: "#f1f5f9", justifyContent: "center", alignItems: "center" }}>
+        {loading && <ActivityIndicator size="small" color="#d89b38" style={{ position: "absolute" }} />}
         <Image
           source={{ uri }}
-          style={{ width: 200, height: 130 }}
+          style={{ width: 200, height: 130, position: "absolute" }}
           contentFit="cover"
           cachePolicy="memory-disk"
-          transition={150}
-          onLoadEnd={() => setLoaded(true)}
+          transition={300}
+          onLoad={() => setLoading(false)}
         />
-        <Animated.View
-          pointerEvents="none"
-          style={{ ...StyleSheet.absoluteFillObject, opacity: fade }}
-        >
-          <ShimmerOverlay width={200} height={130} borderRadius={14} />
-        </Animated.View>
       </View>
     </TouchableOpacity>
   );
@@ -177,21 +140,23 @@ function OverviewItem({ icon, label, value }: { icon: string; label: string; val
 const SCREEN_W = Dimensions.get("window").width;
 const SCREEN_H = Dimensions.get("window").height;
 
-/* Per-slide pinch-to-zoom + pan image */
+/* Per-slide pinch-to-zoom + pan image with progressive placeholder */
 function ZoomableImage({
   uri,
+  placeholderUri,
   onZoomChange,
 }: {
   uri: string;
+  placeholderUri?: string;
   onZoomChange: (zoomed: boolean) => void;
 }) {
   const IMG_H = SCREEN_H;
 
   // Accumulated zoom (persisted between gestures) × current gesture's relative zoom
-  const baseScale  = useRef(new Animated.Value(1)).current;
+  const baseScale = useRef(new Animated.Value(1)).current;
   const pinchScale = useRef(new Animated.Value(1)).current;
-  const scale      = useRef(Animated.multiply(baseScale, pinchScale)).current;
-  const lastScale  = useRef(1);
+  const scale = useRef(Animated.multiply(baseScale, pinchScale)).current;
+  const lastScale = useRef(1);
   const [isZoomed, setIsZoomed] = useState(false);
 
   // Pan
@@ -232,7 +197,7 @@ function ZoomableImage({
         translateX.flattenOffset();
         translateY.flattenOffset();
         Animated.parallel([
-          Animated.spring(baseScale,  { toValue: 1, useNativeDriver: true }),
+          Animated.spring(baseScale, { toValue: 1, useNativeDriver: true }),
           Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
           Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
         ]).start();
@@ -264,7 +229,7 @@ function ZoomableImage({
       // With translate-before-scale, translation is in screen space,
       // so clamp = half the extra size the image gained from zooming
       const maxX = (SCREEN_W * (s - 1)) / 2;
-      const maxY = (IMG_H    * (s - 1)) / 2;
+      const maxY = (IMG_H * (s - 1)) / 2;
 
       // Clamp final position
       const newX = Math.max(-maxX, Math.min(maxX, lastTranslateX.current + tx));
@@ -308,10 +273,12 @@ function ZoomableImage({
           >
             <Image
               source={{ uri }}
+              placeholder={placeholderUri ? { uri: placeholderUri } : undefined}
+              placeholderContentFit="contain"
               style={{ width: "100%", height: "100%" }}
               contentFit="contain"
               cachePolicy="memory-disk"
-              transition={120}
+              transition={200}
               priority="high"
             />
           </Animated.View>
@@ -323,11 +290,13 @@ function ZoomableImage({
 
 function ImageLightbox({
   uris,
+  placeholderUri,
   initialIndex,
   visible,
   onClose,
 }: {
   uris: string[];
+  placeholderUri?: string;
   initialIndex: number;
   visible: boolean;
   onClose: () => void;
@@ -381,6 +350,7 @@ function ImageLightbox({
               >
                 <ZoomableImage
                   uri={item}
+                  placeholderUri={placeholderUri}
                   onZoomChange={(zoomed) => setScrollEnabled(!zoomed)}
                 />
               </Pressable>
@@ -404,6 +374,56 @@ function ImageLightbox({
           >
             <Ionicons name="close" size={22} color="#fff" />
           </TouchableOpacity>
+
+          {/* Prev arrow */}
+          {currentIndex > 0 && (
+            <TouchableOpacity
+              onPress={() => {
+                const prev = currentIndex - 1;
+                flatRef.current?.scrollToIndex({ index: prev, animated: true });
+                setCurrentIndex(prev);
+              }}
+              style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                marginTop: -24,
+                backgroundColor: "rgba(255,255,255,0.18)",
+                borderRadius: 24,
+                width: 48,
+                height: 48,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="chevron-back" size={26} color="#fff" />
+            </TouchableOpacity>
+          )}
+
+          {/* Next arrow */}
+          {currentIndex < uris.length - 1 && (
+            <TouchableOpacity
+              onPress={() => {
+                const next = currentIndex + 1;
+                flatRef.current?.scrollToIndex({ index: next, animated: true });
+                setCurrentIndex(next);
+              }}
+              style={{
+                position: "absolute",
+                right: 12,
+                top: "50%",
+                marginTop: -24,
+                backgroundColor: "rgba(255,255,255,0.18)",
+                borderRadius: 24,
+                width: 48,
+                height: 48,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="chevron-forward" size={26} color="#fff" />
+            </TouchableOpacity>
+          )}
 
           {/* Counter pill */}
           <View
@@ -462,15 +482,17 @@ export default function PropertyDetail({
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [showLogin, setShowLogin] = useState(false);
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const galleryY = useRef(0);
+  const scrollY = useRef(0);
   const user = useUser();
+  const [showContactModal, setShowContactModal] = useState(false);
+
 
   const handleBookVisit = () => {
-    if (!user) {
-      setShowLogin(true);
-      return;
-    }
-    // TODO: proceed with real booking flow
+
+    setShowContactModal(true);
+
   };
 
   if (!project) {
@@ -485,10 +507,13 @@ export default function PropertyDetail({
     );
   }
 
-  const configurations = project.projectConfiguration.split(",").map((c) => c.trim()).filter(Boolean);
-  const bannerUri    = getImageUrl(project.slugURL, project.projectBannerImage || project.projectThumbnailImage);
+  const configurations = (project.projectConfiguration || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+  const bannerUri = getImageUrl(project.slugURL, project.projectBannerImage || project.projectThumbnailImage);
   const thumbnailUri = getImageUrl(project.slugURL, project.projectThumbnailImage);
-  const priceNum = parseFloat(project.projectPrice);
+  const priceNum = parseFloat(project.projectPrice || "0");
   const isNumericPrice = !isNaN(priceNum) && priceNum > 0;
   const priceDisplay = isNumericPrice ? `₹${project.projectPrice} Cr` : "On Request";
   const emi = isNumericPrice ? Math.round(priceNum * 100000 * 8.5 / 1200) : 0;
@@ -496,7 +521,20 @@ export default function PropertyDetail({
 
   return (
     <View className={styles.page}>
-      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        onScroll={(e) => {
+          scrollY.current = e.nativeEvent.contentOffset.y;
+          if (!galleryVisible && galleryY.current > 0) {
+            const screenH = Dimensions.get("window").height;
+            if (scrollY.current + screenH > galleryY.current - 100) {
+              setGalleryVisible(true);
+            }
+          }
+        }}
+        scrollEventThrottle={200}
+      >
 
         {/* ── HERO ── */}
         <View className={styles.hero} style={{ height: HERO_H }}>
@@ -507,7 +545,7 @@ export default function PropertyDetail({
             style={{ width: "100%", height: HERO_H }}
             contentFit="cover"
             cachePolicy="memory-disk"
-            transition={200}
+            transition={800}
             priority="high"
           />
 
@@ -576,9 +614,9 @@ export default function PropertyDetail({
 
           {/* ── STAT CHIPS ── */}
           <View className={styles.statRow}>
-            <StatChip icon="business-outline"  label="Type"   value={project.propertyTypeName}    color="#2563eb" />
-            <StatChip icon="location-outline"  label="City"   value={project.cityName}             color="#16a34a" />
-            <StatChip icon="construct-outline" label="Status" value={project.projectStatusName}    color="#d89b38" />
+            <StatChip icon="business-outline" label="Type" value={project.propertyTypeName} color="#2563eb" />
+            <StatChip icon="location-outline" label="City" value={project.cityName} color="#16a34a" />
+            <StatChip icon="construct-outline" label="Status" value={project.projectStatusName} color="#d89b38" />
           </View>
 
           {/* ── CONFIGURATIONS ── */}
@@ -596,7 +634,7 @@ export default function PropertyDetail({
           )}
 
           {/* ── ABOUT ── */}
-          {!!aboutText && (
+          {(!detail || !!aboutText) && (
             <GlassCard className={styles.cardSpacing}>
               <SectionHeader
                 icon="document-text-outline"
@@ -605,47 +643,81 @@ export default function PropertyDetail({
                 subtitle="Project walkthrough"
               />
               <View className={styles.aboutBody}>
-                <Text className={styles.aboutText}>{aboutText}</Text>
+                {detail ? (
+                  <Text className={styles.aboutText}>{aboutText}</Text>
+                ) : (
+                  <View style={{ gap: 8 }}>
+                    <SkeletonPlaceholder width="100%" height={14} borderRadius={4} showSpinner={false} />
+                    <SkeletonPlaceholder width="90%" height={14} borderRadius={4} showSpinner={false} />
+                    <SkeletonPlaceholder width="75%" height={14} borderRadius={4} showSpinner={false} />
+                  </View>
+                )}
               </View>
             </GlassCard>
           )}
 
           {/* ── GALLERY ── */}
           {detail?.galleryImages && detail.galleryImages.length > 0 && (
-            <GlassCard className={styles.cardSpacing}>
-              <SectionHeader
-                icon="images-outline"
-                title="Gallery"
-                color="#e879f9"
-                subtitle={`${detail.galleryImages.length} photos`}
-              />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                className={styles.galleryScroll}
-              >
-                {detail.galleryImages.map((img, i) => {
-                  const uri = getImageUrl(project.slugURL, img.imageName);
-                  return (
-                    <GalleryThumb
-                      key={img.id ?? i}
-                      uri={uri}
-                      onPress={() => setLightboxIndex(i)}
-                    />
-                  );
-                })}
-              </ScrollView>
-            </GlassCard>
+            <View
+              onLayout={(e) => {
+                galleryY.current = e.nativeEvent.layout.y;
+                // Check if already scrolled past
+                const screenH = Dimensions.get("window").height;
+                if (scrollY.current + screenH > e.nativeEvent.layout.y - 100) {
+                  setGalleryVisible(true);
+                }
+              }}
+            >
+              <GlassCard className={styles.cardSpacing}>
+                <SectionHeader
+                  icon="images-outline"
+                  title="Gallery"
+                  color="#e879f9"
+                  subtitle={`${detail.galleryImages.length} photos`}
+                />
+                {galleryVisible ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingTop: 12 }}
+                  >
+                    {detail.galleryImages.map((img, i) => {
+                      const uri = getImageUrl(project.slugURL, img.imageName);
+                      return (
+                        <GalleryThumb
+                          key={img.id ?? i}
+                          uri={uri}
+                          onPress={() => setLightboxIndex(i)}
+                        />
+                      );
+                    })}
+                  </ScrollView>
+                ) : (
+                  /* Skeleton placeholders until user scrolls here */
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingTop: 12 }}
+                    scrollEnabled={false}
+                  >
+                    <View style={{ marginRight: 10 }}>
+                      <SkeletonPlaceholder width={200} height={130} borderRadius={14} />
+                    </View>
+                    <SkeletonPlaceholder width={200} height={130} borderRadius={14} />
+                  </ScrollView>
+                )}
+              </GlassCard>
+            </View>
           )}
 
           {/* ── OVERVIEW ── */}
           <GlassCard className={styles.cardSpacing}>
             <SectionHeader icon="information-circle-outline" title="Property Overview" color="#0ea5e9" subtitle="Key details at a glance" />
             <View className={styles.overviewGrid}>
-              <OverviewItem icon="map-outline"    label="Locality"       value={project.projectLocality} />
-              <OverviewItem icon="person-outline" label="Builder"        value={project.builderName} />
-              <OverviewItem icon="cash-outline"   label="Starting Price" value={priceDisplay} />
-              <OverviewItem icon="home-outline"   label="City"           value={project.cityName} />
+              <OverviewItem icon="map-outline" label="Locality" value={project.projectLocality} />
+              <OverviewItem icon="person-outline" label="Builder" value={project.builderName} />
+              <OverviewItem icon="cash-outline" label="Starting Price" value={priceDisplay} />
+              <OverviewItem icon="home-outline" label="City" value={project.cityName} />
             </View>
           </GlassCard>
 
@@ -753,10 +825,10 @@ export default function PropertyDetail({
           <GlassCard className={styles.cardSpacing}>
             <SectionHeader icon="trending-up-outline" title="Why Invest?" color="#d89b38" subtitle="Reasons to buy here" />
             {[
-              { icon: "shield-checkmark-outline", text: "RERA Registered & Verified Project",           color: "#16a34a" },
-              { icon: "trending-up-outline",      text: "High appreciation potential in this locality",  color: "#2563eb" },
-              { icon: "people-outline",           text: "Trusted builder with proven track record",      color: "#d89b38" },
-              { icon: "car-outline",              text: "Excellent connectivity & infrastructure",        color: "#9333ea" },
+              { icon: "shield-checkmark-outline", text: "RERA Registered & Verified Project", color: "#16a34a" },
+              { icon: "trending-up-outline", text: "High appreciation potential in this locality", color: "#2563eb" },
+              { icon: "people-outline", text: "Trusted builder with proven track record", color: "#d89b38" },
+              { icon: "car-outline", text: "Excellent connectivity & infrastructure", color: "#9333ea" },
             ].map((item, i) => (
               <View key={i} className={styles.whyRow}>
                 <View className={styles.whyIconWrap} style={{ backgroundColor: item.color + "15" }}>
@@ -859,20 +931,21 @@ export default function PropertyDetail({
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleBookVisit} className={styles.ctaBtn}>
-          <Text className={styles.ctaText}>Book Site Visit</Text>
+          <Text className={styles.ctaText}>Enquiry Submit</Text>
         </TouchableOpacity>
       </View>
 
-      <LoginSheet
-        visible={showLogin}
-        onClose={() => setShowLogin(false)}
-        title="Login to continue"
-        subtitle="Enter your email to book a site visit"
+      <ContactFormModal
+        visible={showContactModal}
+        onClose={() => setShowContactModal(false)}
       />
+
+
 
       {detail?.galleryImages && detail.galleryImages.length > 0 && (
         <ImageLightbox
           uris={detail.galleryImages.map((img) => getImageUrl(project.slugURL, img.imageName))}
+          placeholderUri={thumbnailUri}
           initialIndex={lightboxIndex ?? 0}
           visible={lightboxIndex !== null}
           onClose={() => setLightboxIndex(null)}

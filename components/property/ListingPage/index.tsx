@@ -5,6 +5,7 @@ import {
   getImageUrl,
   getProjectsCache,
   prefetchProjectImages,
+  fetchProjectDetail,
   type Project,
 } from "@/utils/api";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -50,6 +51,9 @@ const IMAGE_STYLE = { width: "100%" as const, height: 260 };
 
 const PropertyCard = memo(function PropertyCard({ item }: { item: Project }) {
   const onPress = useCallback(() => {
+    // Problem 1 Fix: Fire the fetch immediately on tap to populate detailCache
+    // By the time the screen mounts, data may already be ready
+    fetchProjectDetail(item.slugURL);
     router.push(`/propertyDetail/${item.slugURL}` as any);
   }, [item.slugURL]);
 
@@ -405,6 +409,14 @@ export default function ListingsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   ), [search, sortBy, filterType, filterCity, filterStatus, filterPriceRange, routeContextTag, paramCity, paramTag, paramPriceRange, dropdown, displayed.length, loading]);
 
+  // Stable reference for viewability tracking to prevent FlatList crashes
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    viewableItems.forEach(({ item }: any) => {
+      fetchProjectDetail(item.slugURL);
+    });
+  }).current;
+
   if (loading) {
     return (
       <View className={styles.loadingWrap}>
@@ -413,7 +425,6 @@ export default function ListingsPage() {
       </View>
     );
   }
-
   return (
     <View className={styles.pageShell}>
       <FlatList
@@ -437,6 +448,8 @@ export default function ListingsPage() {
         maxToRenderPerBatch={6}
         updateCellsBatchingPeriod={30}
         windowSize={9}
+        viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={onViewableItemsChanged}
       />
 
       {/* ── Dropdown Modal ── */}

@@ -96,7 +96,9 @@ export default function RootLayout() {
   useEffect(() => {
     const minWait  = new Promise<void>((res) => setTimeout(res, MIN_SPLASH_MS));
     const apiFetch = fetchProjects()
-      .then((projects) => prefetchProjectImages(projects))
+      .then((projects) => {
+        prefetchProjectImages(projects);
+      })
       .catch(() => null);
     Promise.all([minWait, apiFetch]).then(() => setSplashDone(true));
   }, []);
