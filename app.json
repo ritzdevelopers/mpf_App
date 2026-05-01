@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.my-app"
+      "bundleIdentifier": "com.anonymous.my-app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "softwareKeyboardLayoutMode": "resize"
+      "package": "com.anonymous.myapp"
     },
     "web": {
       "output": "static",
@@ -42,11 +45,17 @@
           }
         }
       ],
-      "expo-web-browser"
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": false
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "967f11f1-1386-40a8-8a93-9e96055a5061"
+      }
     }
   }
 }
