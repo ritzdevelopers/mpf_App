@@ -10,6 +10,8 @@ import {
     View,
 } from "react-native";
 import { styles } from "./ContactFormModalUI";
+import { SendButton } from "@/components/common/ui/ButtonUI/ButtonUI";
+
 
 export default function ContactFormModal({
     visible,
@@ -23,6 +25,36 @@ export default function ContactFormModal({
     const [phone, setPhone] = useState("");
     const [message, setMessage] = useState("");
     const [focused, setFocused] = useState("");
+    const [error, setError] = useState("");
+
+    const validate = () => {
+        if (!name.trim() || name.trim().length < 2) {
+            setError("Please enter your full name");
+            return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError("Please enter a valid email address");
+            return false;
+        }
+        const phoneDigits = phone.replace(/\D/g, "");
+        if (phoneDigits.length < 10) {
+            setError("Please enter a valid 10-digit phone number");
+            return false;
+        }
+        setError("");
+        return true;
+    };
+
+
+    const handleSubmit = () => {
+        console.log({ name, email, phone, message });
+        // Give time for the "Sent!" animation to show before closing
+        setTimeout(() => {
+            onClose();
+        }, 1500);
+    };
+
 
     return (
         <Modal visible={visible} transparent animationType="slide">
@@ -105,13 +137,16 @@ export default function ContactFormModal({
                                         />
                                     </View>
 
+                                    {/* Error Message */}
+                                    {error ? (
+                                        <Text style={{ color: "#ef4444", fontSize: 13, fontWeight: "600", textAlign: "center", marginTop: 8 }}>
+                                            {error}
+                                        </Text>
+                                    ) : null}
+
                                     {/* CTA */}
-                                    <TouchableOpacity
-                                        onPress={() => { console.log({ name, email, phone, message }); onClose(); }}
-                                        className={styles.button}
-                                    >
-                                        <Text className={styles.buttonText}>Submit Enquiry</Text>
-                                    </TouchableOpacity>
+                                    <SendButton onBeforePress={validate} onPress={handleSubmit} />
+
 
                                 </ScrollView>
                             </View>

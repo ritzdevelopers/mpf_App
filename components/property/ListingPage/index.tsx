@@ -37,7 +37,8 @@ import { styles } from "./listingUI";
 const PAGE_SIZE = 20;
 
 type SortKey = "default" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
-type DropdownKey = "sort" | "type" | "city" | "status" | null;
+type DropdownKey = "sort" | "type" | "city" | "status" | "builder" | null;
+
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "default",    label: "Default"             },
@@ -142,33 +143,43 @@ export default function ListingsPage() {
   const [filterCity,  setFilterCity]  = useState<string | null>(null);
   const [filterStatus,setFilterStatus]= useState<string | null>(null);
   const [filterPriceRange, setFilterPriceRange] = useState<string | null>(null);
+  const [filterBuilder, setFilterBuilder] = useState<string | null>(null);
   const [dropdown,    setDropdown]    = useState<DropdownKey>(null);
   const [routeContextTag, setRouteContextTag] = useState<string | null>(null);
+
 
   const searchParams     = useLocalSearchParams<{
     city?: string;
     tag?: string;
     priceRange?: string;
     sort?: string;
+    search?: string;
+    builder?: string;
   }>();
   const paramCity        = firstStringParam(searchParams.city);
   const paramTag         = firstStringParam(searchParams.tag) ?? null;
   const paramPriceRange  = firstStringParam(searchParams.priceRange) ?? null;
   const paramSort        = firstStringParam(searchParams.sort) ?? null;
+  const paramSearch      = firstStringParam(searchParams.search) ?? null;
+  const paramBuilder     = firstStringParam(searchParams.builder) ?? null;
+
   const lastRouteSig     = useRef<string>("");
 
   // ── unique filter values (derived once data loads) ──
   const [cities,   setCities]   = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
+  const [builders, setBuilders] = useState<string[]>([]);
 
-  /* Home: /listings?city&tag&priceRange&sort — apply when params change (see Clear → lastRouteSig). */
+
+  /* Home: /listings?city&tag&priceRange&sort&search — apply when params change (see Clear → lastRouteSig). */
   useEffect(() => {
-    const sig = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}|${paramSort ?? ""}`;
-    const hasRoute = !!(paramCity || paramTag || paramPriceRange || paramSort);
+    const sig = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}|${paramSort ?? ""}|${paramSearch ?? ""}|${paramBuilder ?? ""}`;
+    const hasRoute = !!(paramCity || paramTag || paramPriceRange || paramSort || paramSearch || paramBuilder);
     if (!hasRoute) return;
     if (lastRouteSig.current === sig) return;
     if (!cities.length) return;
     lastRouteSig.current = sig;
+
 
     if (paramSort && isSortParam(paramSort)) {
       setSortBy(paramSort);
@@ -188,7 +199,14 @@ export default function ListingsPage() {
     if (paramPriceRange) {
       setFilterPriceRange(paramPriceRange);
     }
-  }, [cities, paramCity, paramTag, paramPriceRange, paramSort]);
+    if (paramSearch) {
+      setSearch(paramSearch);
+    }
+    if (paramBuilder) {
+      setFilterBuilder(paramBuilder);
+    }
+  }, [cities, paramCity, paramTag, paramPriceRange, paramSort, paramSearch, paramBuilder]);
+
 
   useEffect(() => {
     const cached = getProjectsCache();
@@ -196,7 +214,8 @@ export default function ListingsPage() {
       allProjects.current = cached;
       setCities([...new Set(cached.map((p) => p.cityName).filter(Boolean))].sort());
       setStatuses([...new Set(cached.map((p) => p.projectStatusName).filter(Boolean))].sort());
-      applyFilters(cached, "", "default", null, null, null, null);
+      setBuilders([...new Set(cached.map((p) => p.builderName).filter(Boolean))].sort());
+      applyFilters(cached, "", "default", null, null, null, null, null);
       return;
     }
     fetchProjects()
@@ -204,8 +223,10 @@ export default function ListingsPage() {
         allProjects.current = data;
         setCities([...new Set(data.map((p) => p.cityName).filter(Boolean))].sort());
         setStatuses([...new Set(data.map((p) => p.projectStatusName).filter(Boolean))].sort());
-        applyFilters(data, "", "default", null, null, null, null);
+        setBuilders([...new Set(data.map((p) => p.builderName).filter(Boolean))].sort());
+        applyFilters(data, "", "default", null, null, null, null, null);
       })
+
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -218,7 +239,8 @@ export default function ListingsPage() {
     type: string | null,
     city: string | null,
     status: string | null,
-    homePriceRange: string | null
+    homePriceRange: string | null,
+    builder: string | null
   ) {
     const q2 = q.toLowerCase().trim();
     let result = all.filter((p) => {
@@ -229,7 +251,9 @@ export default function ListingsPage() {
       if (type && !projectMatchesHomeTypeTag(p, type)) return false;
       if (city   && p.cityName          !== city)   return false;
       if (status && p.projectStatusName !== status) return false;
+      if (builder && p.builderName !== builder) return false;
       if (homePriceRange && !projectMatchesHomePriceRange(p.projectPrice, homePriceRange)) {
+
         return false;
       }
       return true;
@@ -258,9 +282,11 @@ export default function ListingsPage() {
       filterType,
       filterCity,
       filterStatus,
-      filterPriceRange
+      filterPriceRange,
+      filterBuilder
     );
-  }, [search, sortBy, filterType, filterCity, filterStatus, filterPriceRange]);
+  }, [search, sortBy, filterType, filterCity, filterStatus, filterPriceRange, filterBuilder]);
+
 
   const loadMore = useCallback(() => {
     const total = filteredRef.current.length;
@@ -276,13 +302,15 @@ export default function ListingsPage() {
       prefetchProjectImages(chunk, PAGE_SIZE);
     }, 80);
   }, [loadingMore]);
-
   const activeFilterCount = [
     filterType,
     filterCity,
     filterStatus,
     filterPriceRange,
+    filterBuilder
   ].filter(Boolean).length;
+
+
 
   const renderCard = useCallback(
     ({ item }: { item: Project }) => <PropertyCard item={item} />,
@@ -323,7 +351,8 @@ export default function ListingsPage() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className={styles.filterScroll} contentContainerStyle={{ paddingRight: 4 }}>
         {/* Sort */}
         <TouchableOpacity
-          onPress={() => setDropdown(dropdown === "sort" ? null : "sort")}
+          onPress={() => setDropdown(prev => prev === "sort" ? null : "sort")}
+
           className={`flex-row items-center px-4 py-2 rounded-full border mr-2 ${sortBy !== "default" ? "bg-slate-900 border-slate-900" : "bg-white border-slate-200"}`}
         >
           <Ionicons name="swap-vertical-outline" size={13} color={sortBy !== "default" ? "#fff" : "#475569"} />
@@ -335,7 +364,8 @@ export default function ListingsPage() {
 
         {/* Type */}
         <TouchableOpacity
-          onPress={() => setDropdown(dropdown === "type" ? null : "type")}
+          onPress={() => setDropdown(prev => prev === "type" ? null : "type")}
+
           className={`flex-row items-center px-4 py-2 rounded-full border mr-2 ${filterType ? "bg-[#d89b38] border-[#d89b38]" : "bg-white border-slate-200"}`}
         >
           <Text className={`text-xs font-semibold ${filterType ? "text-white" : "text-slate-700"}`}>
@@ -346,7 +376,8 @@ export default function ListingsPage() {
 
         {/* City */}
         <TouchableOpacity
-          onPress={() => setDropdown(dropdown === "city" ? null : "city")}
+          onPress={() => setDropdown(prev => prev === "city" ? null : "city")}
+
           className={`flex-row items-center px-4 py-2 rounded-full border mr-2 ${filterCity ? "bg-[#d89b38] border-[#d89b38]" : "bg-white border-slate-200"}`}
         >
           <Ionicons name="location-outline" size={13} color={filterCity ? "#fff" : "#475569"} />
@@ -358,7 +389,8 @@ export default function ListingsPage() {
 
         {/* Status */}
         <TouchableOpacity
-          onPress={() => setDropdown(dropdown === "status" ? null : "status")}
+          onPress={() => setDropdown(prev => prev === "status" ? null : "status")}
+
           className={`flex-row items-center px-4 py-2 rounded-full border mr-2 ${filterStatus ? "bg-[#d89b38] border-[#d89b38]" : "bg-white border-slate-200"}`}
         >
           <Text className={`text-xs font-semibold ${filterStatus ? "text-white" : "text-slate-700"}`}>
@@ -366,6 +398,19 @@ export default function ListingsPage() {
           </Text>
           <Ionicons name="chevron-down" size={11} color={filterStatus ? "#fff" : "#94a3b8"} style={{ marginLeft: 4 }} />
         </TouchableOpacity>
+
+        {/* Builder */}
+        <TouchableOpacity
+          onPress={() => setDropdown(prev => prev === "builder" ? null : "builder")}
+
+          className={`flex-row items-center px-4 py-2 rounded-full border mr-2 ${filterBuilder ? "bg-[#d89b38] border-[#d89b38]" : "bg-white border-slate-200"}`}
+        >
+          <Text className={`text-xs font-semibold ${filterBuilder ? "text-white" : "text-slate-700"}`}>
+            {filterBuilder ?? "Builder"}
+          </Text>
+          <Ionicons name="chevron-down" size={11} color={filterBuilder ? "#fff" : "#94a3b8"} style={{ marginLeft: 4 }} />
+        </TouchableOpacity>
+
 
         {/* Clear all */}
         {(activeFilterCount > 0 || sortBy !== "default") && (
@@ -375,10 +420,12 @@ export default function ListingsPage() {
               setFilterCity(null);
               setFilterStatus(null);
               setFilterPriceRange(null);
+              setFilterBuilder(null);
               setSortBy("default");
               setRouteContextTag(null);
-              lastRouteSig.current = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}|${paramSort ?? ""}`;
+              lastRouteSig.current = `${paramCity ?? ""}|${paramTag ?? ""}|${paramPriceRange ?? ""}|${paramSort ?? ""}|${paramBuilder ?? ""}`;
             }}
+
             className={styles.clearBtn}
           >
             <Ionicons name="close" size={13} color="#ef4444" />
@@ -395,8 +442,10 @@ export default function ListingsPage() {
         {routeContextTag ? ` · ${routeContextTag}` : ""}
         {filterType ? ` · ${filterType}` : ""}
         {filterStatus ? ` · ${filterStatus}` : ""}
+        {filterBuilder ? ` · ${filterBuilder}` : ""}
         {search ? ` · "${search}"` : ""}
       </Text>
+
 
       {displayed.length === 0 && !loading && (
         <View className={styles.emptyWrap}>
@@ -407,7 +456,9 @@ export default function ListingsPage() {
       )}
     </View>
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [search, sortBy, filterType, filterCity, filterStatus, filterPriceRange, routeContextTag, paramCity, paramTag, paramPriceRange, dropdown, displayed.length, loading]);
+  ), [search, sortBy, filterType, filterCity, filterStatus, filterPriceRange, filterBuilder, routeContextTag, paramCity, paramTag, paramPriceRange, paramBuilder, displayed.length, loading]);
+
+
 
   // Stable reference for viewability tracking to prevent FlatList crashes
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
@@ -538,14 +589,47 @@ export default function ListingsPage() {
                     onPress={() => { setFilterStatus(s); setDropdown(null); }}
                     style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: 1, borderTopColor: "#f8fafc" }}
                   >
-                    <Text style={{ fontSize: 14, color: filterStatus === s ? "#d89b38" : "#1e293b", fontWeight: filterStatus === s ? "700" : "400" }}>{s}</Text>
-                    {filterStatus === s && <Ionicons name="checkmark" size={18} color="#d89b38" />}
-                  </TouchableOpacity>
-                ))}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+            {/* Builder */}
+            {dropdown === "builder" && (
+              <View>
+                <Text style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6, fontWeight: "700", fontSize: 13, color: "#94a3b8", letterSpacing: 0.5 }}>BUILDER</Text>
+                <FlatList
+                  data={builders}
+                  keyExtractor={(item) => item}
+                  style={{ maxHeight: 350 }}
+                  initialNumToRender={15}
+                  maxToRenderPerBatch={10}
+                  windowSize={5}
+                  ListHeaderComponent={
+                    <TouchableOpacity
+                      onPress={() => { setFilterBuilder(null); setDropdown(null); }}
+                      style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: "#f8fafc" }}
+                    >
+                      <Text style={{ fontSize: 14, color: !filterBuilder ? "#d89b38" : "#1e293b", fontWeight: !filterBuilder ? "700" : "400" }}>All Builders</Text>
+                      {!filterBuilder && <Ionicons name="checkmark" size={18} color="#d89b38" />}
+                    </TouchableOpacity>
+                  }
+                  renderItem={({ item: b }) => (
+                    <TouchableOpacity
+                      onPress={() => { setFilterBuilder(b); setDropdown(null); }}
+                      style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: "#f8fafc" }}
+                    >
+                      <Text style={{ fontSize: 14, color: filterBuilder === b ? "#d89b38" : "#1e293b", fontWeight: filterBuilder === b ? "700" : "400" }}>{b}</Text>
+                      {filterBuilder === b && <Ionicons name="checkmark" size={18} color="#d89b38" />}
+                    </TouchableOpacity>
+                  )}
+                />
               </View>
             )}
 
+
           </View>
+
         </Pressable>
       </Modal>
     </View>

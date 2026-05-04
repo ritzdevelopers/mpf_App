@@ -4,7 +4,9 @@ import { ScrollView, View } from "react-native";
 import CategoryCarousel from "@/components/home/CategoryCaraousel";
 import CityProperty from "@/components/home/CityProperty";
 import EnquiryMiniCard from "@/components/home/EnquiryMiniCard";
+import ExploreNearby from "@/components/home/NearByProperties";
 import NewLaunches from "@/components/home/NewLaunches";
+import PopularBuilders from "@/components/home/PopularBuilders";
 import PopularTools from "@/components/home/PopularTools";
 import PropertyChoice from "@/components/home/PropertyChoice";
 import PropertyTypes from "@/components/home/PropertyTypes";
@@ -41,6 +43,8 @@ export default function HomeScreen() {
         <PopularTools />
         <NewLaunches />
         <CityProperty />
+        <PopularBuilders/>
+        <ExploreNearby />
         <EnquiryMiniCard onPress={() => setShowForm(true)} />
       </ScrollView>
 

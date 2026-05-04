@@ -17,7 +17,7 @@ const postedByData = [
   { id: 2, title: "By Owner",   count: "160+",  iconType: "fa", icon: "user"     },
 ];
 
-function SectionBlock({ title, subtitle, data, isFA = false }: any) {
+function SectionBlock({ title, subtitle, data, isFA = false, onSelect }: any) {
   return (
     <View className="mb-5">
       <View className="flex-row justify-between items-center mb-3">
@@ -38,6 +38,7 @@ function SectionBlock({ title, subtitle, data, isFA = false }: any) {
         {data.map((item: any) => (
           <TouchableOpacity
             key={item.id}
+            onPress={() => onSelect && onSelect(item)}
             className="mr-3 w-32 bg-white rounded-2xl p-4 items-center border border-slate-100"
             style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
           >
@@ -57,6 +58,30 @@ function SectionBlock({ title, subtitle, data, isFA = false }: any) {
 }
 
 export default function PropertyChoice() {
+  const handleBhkSelect = (item: any) => {
+    // Extract the BHK number or term to search for
+    // e.g. "2 BHK" -> "2 BHK"
+    // e.g. "4 BHK+" -> "4 BHK"
+    const searchTerm = item.title.replace("+", "").split("/").pop().trim();
+    
+    router.push({
+      pathname: "/listings" as any,
+      params: { 
+        tag: "Residential",
+        search: searchTerm
+      }
+    });
+  };
+
+  const handlePostedBySelect = (item: any) => {
+    router.push({
+      pathname: "/listings" as any,
+      params: { 
+        search: item.title 
+      }
+    });
+  };
+
   return (
     <View className="bg-white px-4 pt-5 pb-4">
       <SectionBlock
@@ -64,13 +89,16 @@ export default function PropertyChoice() {
         subtitle="Browse by bedroom configuration"
         data={bhkData}
         isFA={false}
+        onSelect={handleBhkSelect}
       />
       <SectionBlock
         title="Posted By"
         subtitle="Find properties by listing type"
         data={postedByData}
         isFA={true}
+        onSelect={handlePostedBySelect}
       />
     </View>
   );
 }
+
