@@ -196,6 +196,8 @@ export async function fetchProjectDetail(slug: string): Promise<ProjectDetail | 
 }
 
 let cache: Project[] | null = null;
+const PROJECTS_CACHE_KEY = "projects_cache_v1";
+const PROJECTS_CACHE_TTL = 1000 * 60 * 30;
 
 /** Returns the already-loaded cache synchronously (null if not yet fetched). */
 export function getProjectsCache(): Project[] | null {
@@ -205,8 +207,28 @@ export function getProjectsCache(): Project[] | null {
 
 
 export async function fetchProjects(): Promise<Project[]> {
+  // 1. Already in memory this session — return instantly
   if (Array.isArray(cache)) return cache;
 
+  // 2. Saved on phone disk — return instantly, refresh quietly if old
+  try {
+    const raw = await AsyncStorage.getItem(PROJECTS_CACHE_KEY);
+    if (raw) {
+      const { data, ts } = JSON.parse(raw);
+      cache = data;
+      const isStale = Date.now() - ts > PROJECTS_CACHE_TTL;
+      if (isStale) {
+        _fetchAndCacheProjects().catch(() => { }); // refresh in background
+      }
+      return data; // user sees data instantly
+    }
+  } catch { /* storage broken, continue to network */ }
+
+  // 3. Nothing saved — first ever launch, must wait for internet
+  return _fetchAndCacheProjects();
+}
+
+async function _fetchAndCacheProjects(): Promise<Project[]> {
   const MAX_RETRIES = 3;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -214,37 +236,36 @@ export async function fetchProjects(): Promise<Project[]> {
       const url = `https://apis.mypropertyfact.in/api/v1/projects?_t=${Date.now()}`;
       console.log(`[API] Fetching projects (attempt ${attempt}/${MAX_RETRIES})...`);
       const { status, body } = await rawGet(url);
-      console.log("[API] Response status:", status);
 
       if (status !== 200) {
-        console.error("[API] Error body:", body.substring(0, 300));
         if (attempt < MAX_RETRIES) {
-          const delay = attempt * 2000;
-          console.warn(`[API] Server returned ${status}, retrying in ${delay}ms...`);
-          await new Promise((r) => setTimeout(r, delay));
+          await new Promise((r) => setTimeout(r, attempt * 2000));
           continue;
         }
-        console.error(`[API] Server returned ${status} after ${MAX_RETRIES} attempts`);
-        return [];
+        return cache ?? [];
       }
 
       const json = JSON.parse(body);
       const data: Project[] = Array.isArray(json) ? json : (json?.data ?? []);
-      console.log("[API] Projects loaded:", data.length);
       cache = data;
+
+      // Save to disk so next launch is instant
+      AsyncStorage.setItem(
+        PROJECTS_CACHE_KEY,
+        JSON.stringify({ data, ts: Date.now() })
+      ).catch(() => { });
+
       return data;
     } catch (err) {
       if (attempt < MAX_RETRIES) {
-        const delay = attempt * 2000;
-        console.warn(`[API] Network error, retrying in ${delay}ms...`, err);
-        await new Promise((r) => setTimeout(r, delay));
+        await new Promise((r) => setTimeout(r, attempt * 2000));
         continue;
       }
-      console.error("[API] fetchProjects FAILED after all retries:", err);
-      return [];
+      console.error("[API] fetchProjects FAILED:", err);
+      return cache ?? [];
     }
   }
-  return [];
+  return cache ?? [];
 }
 
 /**
@@ -254,7 +275,7 @@ export async function fetchProjects(): Promise<Project[]> {
  */
 export async function prefetchProjectImages(
   projects: Project[],
-  limit = 3
+  limit = 1
 ): Promise<void> {
   const subset = projects.slice(0, limit);
 
