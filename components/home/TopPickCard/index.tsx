@@ -165,19 +165,6 @@ export default function TopPickCard() {
             </View>
 
             <TouchableOpacity
-              className={styles.heartBtn}
-              activeOpacity={0.8}
-              onPress={() => setLiked((v) => !v)}
-              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-            >
-              <Ionicons
-                name={liked ? "heart" : "heart-outline"}
-                size={18}
-                color={liked ? "#ef4444" : "#fff"}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
               className={styles.galleryChip}
               activeOpacity={0.8}
               onPress={goToPropertyDetail}

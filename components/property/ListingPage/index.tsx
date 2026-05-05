@@ -69,9 +69,6 @@ const PropertyCard = memo(function PropertyCard({ item }: { item: Project }) {
       />
       <View className={styles.badgeRow}>
         <Text className={styles.badgeDark}>{item.propertyTypeName}</Text>
-        <TouchableOpacity className={styles.heartBtn}>
-          <Ionicons name="heart-outline" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
       <View className={styles.bottomTag}>
         <Text className={styles.bottomTagText}>{item.projectStatusName}</Text>
@@ -342,9 +339,6 @@ export default function ListingsPage() {
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity className={styles.circleBtn}>
-          <Ionicons name="heart-outline" size={22} color="#111" />
-        </TouchableOpacity>
       </View>
 
       {/* Filter chips */}

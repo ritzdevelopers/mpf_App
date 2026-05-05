@@ -1,24 +1,18 @@
-// components/PropertyChoice/index.tsx
-
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { fetchProjects, getProjectsCache, type Project } from "@/utils/api";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
-const bhkData = [
-  { id: 1, title: "1 RK / 1 BHK", count: "820+",   icon: "bed-outline"    },
-  { id: 2, title: "2 BHK",         count: "5,200+",  icon: "home-outline"   },
-  { id: 3, title: "3 BHK",         count: "4,100+",  icon: "home-outline"   },
-  { id: 4, title: "4 BHK+",        count: "1,800+",  icon: "business-outline"},
-
+const STATIC_BHK_DATA = [
+  { id: 1, title: "1 RK / 1 BHK", icon: "bed-outline"    },
+  { id: 2, title: "2 BHK",         icon: "home-outline"   },
+  { id: 3, title: "3 BHK",         icon: "home-outline"   },
+  { id: 4, title: "4 BHK+",        icon: "business-outline"},
 ];
 
-const postedByData = [
-  { id: 1, title: "By Dealer",  count: "300+",  iconType: "fa", icon: "user-tie" },
-  { id: 2, title: "By Owner",   count: "160+",  iconType: "fa", icon: "user"     },
-];
 
-function SectionBlock({ title, subtitle, data, isFA = false, onSelect }: any) {
+function SectionBlock({ title, subtitle, data, counts, isFA = false, onSelect }: any) {
   return (
     <View className="mb-5">
       <View className="flex-row justify-between items-center mb-3">
@@ -50,7 +44,9 @@ function SectionBlock({ title, subtitle, data, isFA = false, onSelect }: any) {
               }
             </View>
             <Text className="text-xs font-bold text-slate-900 text-center">{item.title}</Text>
-            <Text className="text-[10px] text-slate-400 mt-0.5">{item.count} Properties</Text>
+            <Text className="text-[10px] text-slate-400 mt-0.5">
+              {(counts[item.title] || "+")} Properties
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -59,27 +55,38 @@ function SectionBlock({ title, subtitle, data, isFA = false, onSelect }: any) {
 }
 
 export default function PropertyChoice() {
-  const handleBhkSelect = (item: any) => {
-    // Extract the BHK number or term to search for
-    // e.g. "2 BHK" -> "2 BHK"
-    // e.g. "4 BHK+" -> "4 BHK"
-    const searchTerm = item.title.replace("+", "").split("/").pop().trim();
+  const [counts, setCounts] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const cached = getProjectsCache();
+    if (cached) calculateCounts(cached);
+
+    fetchProjects()
+      .then(calculateCounts)
+      .catch(() => {});
+  }, []);
+
+  const calculateCounts = (list: Project[]) => {
+    const newCounts: Record<string, string> = {};
     
-    router.push({
-      pathname: "/listings" as any,
-      params: { 
-        tag: "Residential",
-        search: searchTerm
-      }
-    });
+    // BHK Counts
+    newCounts["1 RK / 1 BHK"] = list.filter(p => {
+       const conf = (p.projectConfiguration || "").toLowerCase();
+       return conf.includes("1 bhk") || conf.includes("1 rk");
+    }).length.toLocaleString();
+
+    newCounts["2 BHK"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("2 bhk")).length.toLocaleString();
+    newCounts["3 BHK"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("3 bhk")).length.toLocaleString();
+    newCounts["4 BHK+"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("4 bhk")).length.toLocaleString();
+    
+    setCounts(newCounts);
   };
 
-  const handlePostedBySelect = (item: any) => {
+  const handleBhkSelect = (item: any) => {
+    const searchTerm = item.title.replace("+", "").split("/").pop().trim();
     router.push({
       pathname: "/listings" as any,
-      params: { 
-        search: item.title 
-      }
+      params: { tag: "Residential", search: searchTerm }
     });
   };
 
@@ -88,18 +95,13 @@ export default function PropertyChoice() {
       <SectionBlock
         title="BHK Choice in Mind?"
         subtitle="Browse by bedroom configuration"
-        data={bhkData}
+        data={STATIC_BHK_DATA}
+        counts={counts}
         isFA={false}
         onSelect={handleBhkSelect}
-      />
-      <SectionBlock
-        title="Posted By"
-        subtitle="Find properties by listing type"
-        data={postedByData}
-        isFA={true}
-        onSelect={handlePostedBySelect}
       />
     </View>
   );
 }
+
 

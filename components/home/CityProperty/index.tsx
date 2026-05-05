@@ -1,9 +1,9 @@
 "use no memo";
+import { getCityImageUrl } from "@/data/allCitiesCards";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import { getCityImageUrl } from "@/data/allCitiesCards";
 import { styles } from "./CityPropertyUI";
 
 const HOME_CITIES: { name: string; homes: string; tag: string }[] = [
@@ -79,25 +79,11 @@ export default function CityProperty() {
                 <Text className={styles.tagText}>{item.tag}</Text>
               </View>
 
-              {/* Heart */}
-              <TouchableOpacity
-                className={styles.heartBtn}
-                activeOpacity={0.8}
-                onPress={() => toggle(index)}
-                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-              >
-                <Ionicons
-                  name={liked.has(index) ? "heart" : "heart-outline"}
-                  size={14}
-                  color={liked.has(index) ? "#ef4444" : "#fff"}
-                />
-              </TouchableOpacity>
-
               <View className={styles.glassFooter}>
                 <Text className={styles.city}>{item.name}</Text>
                 <View className={styles.metaRow}>
-                  <Ionicons name="business-outline" size={11} color="rgba(255,255,255,0.7)" />
-                  <Text className={styles.metaText}>{item.homes}</Text>
+                  
+                  
                 </View>
               </View>
             </View>

@@ -1,52 +1,76 @@
 // app/(tabs)/saved.tsx
 
-import React, { useState } from "react";
+import { fetchProjects, getImageUrl, getProjectsCache, type Project } from "@/utils/api";
+import { toggleFavorite, useFavorites } from "@/utils/favoritesStore";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
+  Image,
   ScrollView,
-  View,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  Image,
-  StyleSheet,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-
-const savedData = [
-  {
-    id: 1,
-    title: "3 BHK Luxury Apartment",
-    location: "Sector 150, Noida",
-    price: "₹1.45 Cr",
-    tag: "New Launch",
-    status: "Under Construction",
-    image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800",
-    tagColor: "#d89b38",
-  },
-  {
-    id: 2,
-    title: "2 BHK Ready To Move",
-    location: "Sector 137, Noida",
-    price: "₹82 Lakh",
-    tag: "Ready",
-    status: "Ready To Move",
-    image: "https://images.unsplash.com/photo-1494526585095-c41746248156?w=800",
-    tagColor: "#16a34a",
-  },
-  {
-    id: 3,
-    title: "Villa with Garden",
-    location: "Greater Noida West",
-    price: "₹2.8 Cr",
-    tag: "Premium",
-    status: "Possession Soon",
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
-    tagColor: "#2563eb",
-  },
-];
 
 export default function SavedScreen() {
-  const [saved, setSaved] = useState(savedData.map((d) => d.id));
+  const router = useRouter();
+  const favoriteIds = useFavorites();
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isSelecting, setIsSelecting] = useState(false);
+  
+  // Filter the full list to only show properties the user has favorited
+  const savedProjects = allProjects.filter(p => favoriteIds.has(p.id));
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const startSelecting = () => {
+    setIsSelecting(true);
+  };
+
+  const cancelSelecting = () => {
+    setIsSelecting(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleComparePress = () => {
+    if (!isSelecting) {
+      setIsSelecting(true);
+      return;
+    }
+
+    if (selectedIds.size < 2) {
+      alert("Please select at least 2 properties to compare.");
+      return;
+    }
+    
+    const ids = Array.from(selectedIds).join(",");
+    router.push({
+      pathname: "/compare" as any,
+      params: { ids }
+    });
+  };
+
+  useEffect(() => {
+    // 1. Try cache first
+    const cached = getProjectsCache();
+    if (cached) setAllProjects(cached);
+
+    // 2. Fetch fresh
+    fetchProjects().then(setAllProjects).catch(() => {});
+  }, []);
+
+  const readyToMoveCount = savedProjects.filter(p => p.projectStatusName === "Ready To Move").length;
+  const newLaunchCount = savedProjects.filter(p => p.projectStatusName === "New Launch").length;
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#f1f5f9" }} showsVerticalScrollIndicator={false}>
@@ -58,9 +82,19 @@ export default function SavedScreen() {
             <Text style={{ fontSize: 28, fontWeight: "800", color: "#0f172a" }}>Shortlist</Text>
             <Text style={{ fontSize: 13, color: "#94a3b8", marginTop: 3 }}>Your favourite saved properties</Text>
           </View>
-          <View style={{ backgroundColor: "#fff7ed", borderRadius: 16, padding: 10, borderWidth: 1, borderColor: "#fed7aa" }}>
-            <Ionicons name="heart" size={22} color="#d89b38" />
-          </View>
+          
+          <TouchableOpacity 
+            onPress={isSelecting ? cancelSelecting : startSelecting}
+            style={{ 
+              backgroundColor: isSelecting ? "#f1f5f9" : "#fff7ed", 
+              borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10, 
+              borderWidth: 1, borderColor: isSelecting ? "#e2e8f0" : "#fed7aa" 
+            }}
+          >
+            <Text style={{ fontWeight: "700", color: isSelecting ? "#64748b" : "#d89b38" }}>
+              {isSelecting ? "Cancel" : "Compare"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -71,13 +105,13 @@ export default function SavedScreen() {
           <View style={{ backgroundColor: "#d89b38", borderRadius: 16, padding: 16, margin: -16, marginBottom: 0 }}>
             <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>Saved Collection</Text>
             <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 2 }}>
-              {saved.length} shortlisted properties
+              {savedProjects.length} shortlisted properties
             </Text>
             <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
               {[
-                { val: String(saved.length), label: "Saved" },
-                { val: "2",  label: "New Launch" },
-                { val: "1",  label: "Ready" },
+                { val: String(savedProjects.length), label: "Saved" },
+                { val: String(newLaunchCount),  label: "New Launch" },
+                { val: String(readyToMoveCount),  label: "Ready" },
               ].map((s, i) => (
                 <View key={i} style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 14, paddingVertical: 10, alignItems: "center" }}>
                   <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>{s.val}</Text>
@@ -88,85 +122,146 @@ export default function SavedScreen() {
           </View>
         </View>
 
-        {/* ── FILTER CHIPS ── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 16 }} contentContainerStyle={{ gap: 8 }}>
-          {["All", "Ready To Move", "New Launch", "Under ₹1 Cr", "Premium"].map((f, i) => (
-            <TouchableOpacity key={i} style={{
-              paddingHorizontal: 14, paddingVertical: 7,
-              backgroundColor: i === 0 ? "#0f172a" : "#fff",
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: i === 0 ? "#0f172a" : "#e2e8f0",
-            }}>
-              <Text style={{ fontSize: 12, fontWeight: "600", color: i === 0 ? "#fff" : "#64748b" }}>{f}</Text>
+        {/* ── EMPTY STATE ── */}
+        {savedProjects.length === 0 && (
+          <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 80 }}>
+            <View style={{ width: 80, height: 80, backgroundColor: "#fff", borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 16, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 10 }}>
+              <Ionicons name="heart-dislike-outline" size={40} color="#cbd5e1" />
+            </View>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#475569" }}>No saved properties yet</Text>
+            <Text style={{ fontSize: 14, color: "#94a3b8", textAlign: "center", marginTop: 8, paddingHorizontal: 40 }}>
+              Tap the heart icon on any property to save it to your shortlist.
+            </Text>
+            <TouchableOpacity 
+              onPress={() => router.push("/listings" as any)}
+              style={{ marginTop: 24, backgroundColor: "#0f172a", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700" }}>Explore Projects</Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          </View>
+        )}
 
         {/* ── CARDS ── */}
         <View style={{ marginTop: 16 }}>
-          {savedData.map((item) => (
-            <View key={item.id} style={[styles.glass, { marginBottom: 14, padding: 0, overflow: "hidden" }]}>
-              {/* Image */}
-              <View style={{ position: "relative" }}>
-                <Image source={{ uri: item.image }} style={{ width: "100%", height: 190 }} resizeMode="cover" />
+          {savedProjects.map((item) => {
+            const imageUri = getImageUrl(item.slugURL, item.projectThumbnailImage);
+            return (
+              <TouchableOpacity 
+                key={item.id} 
+                activeOpacity={0.9}
+                onPress={() => {
+                  if (isSelecting) {
+                    toggleSelect(item.id);
+                  } else {
+                    router.push(`/propertyDetail/${item.slugURL}` as any);
+                  }
+                }}
+                style={[styles.glass, { 
+                  marginBottom: 14, 
+                  padding: 0, 
+                  overflow: "hidden",
+                  borderWidth: 2,
+                  borderColor: (isSelecting && selectedIds.has(item.id)) ? "#d89b38" : "rgba(255,255,255,0.95)"
+                }]}
+              >
+                {/* Image */}
+                <View style={{ position: "relative" }}>
+                  <Image source={{ uri: imageUri }} style={{ width: "100%", height: 190 }} resizeMode="cover" />
 
-                {/* Tag */}
-                <View style={{ position: "absolute", top: 12, left: 12, backgroundColor: item.tagColor, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
-                  <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{item.tag}</Text>
-                </View>
+                  {/* Selection Indicator (only in selection mode) */}
+                  {isSelecting && (
+                    <View style={{ 
+                      position: "absolute", top: 12, left: 12, 
+                      backgroundColor: selectedIds.has(item.id) ? "#d89b38" : "rgba(255,255,255,0.7)", 
+                      width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center",
+                      borderWidth: 2, borderColor: "#fff"
+                    }}>
+                      {selectedIds.has(item.id) && <Ionicons name="checkmark" size={16} color="#fff" />}
+                    </View>
+                  )}
 
-                {/* Remove heart */}
-                <TouchableOpacity
-                  onPress={() => setSaved((s) => s.filter((id) => id !== item.id))}
-                  style={{ position: "absolute", top: 10, right: 10, backgroundColor: "#fff", borderRadius: 12, padding: 7, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 }}
-                >
-                  <Ionicons name="heart" size={18} color="#ef4444" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Info */}
-              <View style={{ padding: 14 }}>
-                <Text style={{ fontSize: 17, fontWeight: "700", color: "#0f172a" }}>{item.title}</Text>
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
-                  <Ionicons name="location-outline" size={12} color="#94a3b8" />
-                  <Text style={{ color: "#94a3b8", fontSize: 12, marginLeft: 4 }}>{item.location}</Text>
-                </View>
-
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#f1f5f9" }}>
-                  <View>
-                    <Text style={{ fontSize: 11, color: "#94a3b8" }}>Price</Text>
-                    <Text style={{ fontSize: 20, fontWeight: "800", color: "#d89b38" }}>{item.price}</Text>
+                  {/* Tag */}
+                  <View style={{ 
+                    position: "absolute", bottom: 12, left: 12, 
+                    backgroundColor: item.projectStatusName === "Ready To Move" ? "#16a34a" : "#d89b38", 
+                    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 
+                  }}>
+                    <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{item.projectStatusName}</Text>
                   </View>
-                  <View style={{ flexDirection: "row", gap: 8 }}>
-                    <TouchableOpacity style={{ borderWidth: 1, borderColor: "#e2e8f0", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 }}>
-                      <Text style={{ fontSize: 12, fontWeight: "600", color: "#64748b" }}>Compare</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ backgroundColor: "#0f172a", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 }}>
-                      <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>View</Text>
-                    </TouchableOpacity>
+
+                </View>
+
+                {/* Info */}
+                <View style={{ padding: 14 }}>
+                  <Text style={{ fontSize: 17, fontWeight: "700", color: "#0f172a" }}>{item.projectName}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
+                    <Ionicons name="location-outline" size={12} color="#94a3b8" />
+                    <Text style={{ color: "#94a3b8", fontSize: 12, marginLeft: 4 }} numberOfLines={1}>
+                      {item.projectLocality}, {item.cityName}
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#f1f5f9" }}>
+                    <View>
+                      <Text style={{ fontSize: 11, color: "#94a3b8" }}>Starting Price</Text>
+                      <Text style={{ fontSize: 20, fontWeight: "800", color: "#d89b38" }}>₹{item.projectPrice} Cr</Text>
+                    </View>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <TouchableOpacity 
+                        onPress={() => router.push(`/propertyDetail/${item.slugURL}` as any)}
+                        style={{ backgroundColor: "#0f172a", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>View</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </View>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* ── COMPARE CTA ── */}
-        <View style={[styles.glass, { marginBottom: 32, borderColor: "#bfdbfe", backgroundColor: "rgba(239,246,255,0.9)" }]}>
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-            <View style={{ backgroundColor: "#dbeafe", borderRadius: 12, padding: 8, marginRight: 12 }}>
-              <Ionicons name="git-compare-outline" size={20} color="#2563eb" />
+        {savedProjects.length > 1 && (
+          <View style={[styles.glass, { 
+            marginBottom: 32, 
+            borderColor: isSelecting ? "#d89b38" : "#bfdbfe", 
+            backgroundColor: isSelecting ? "rgba(255,248,236,0.9)" : "rgba(239,246,255,0.9)" 
+          }]}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+              <View style={{ backgroundColor: isSelecting ? "#fff7ed" : "#dbeafe", borderRadius: 12, padding: 8, marginRight: 12 }}>
+                <Ionicons 
+                  name={isSelecting ? "checkmark-circle-outline" : "git-compare-outline"} 
+                  size={20} 
+                  color={isSelecting ? "#d89b38" : "#2563eb"} 
+                />
+              </View>
+              <View>
+                <Text style={{ fontWeight: "700", fontSize: 15, color: "#1e293b" }}>
+                  {isSelecting ? "Selecting Projects" : "Compare Saved Homes"}
+                </Text>
+                <Text style={{ color: "#64748b", fontSize: 12, marginTop: 1 }}>
+                  {isSelecting 
+                    ? `Pick ${selectedIds.size < 2 ? "at least 2" : selectedIds.size} to compare` 
+                    : "See them side by side"}
+                </Text>
+              </View>
             </View>
-            <View>
-              <Text style={{ fontWeight: "700", fontSize: 15, color: "#1e293b" }}>Compare Saved Homes</Text>
-              <Text style={{ color: "#64748b", fontSize: 12, marginTop: 1 }}>See them side by side</Text>
-            </View>
+            <TouchableOpacity 
+              onPress={handleComparePress}
+              style={{ backgroundColor: "#1e293b", borderRadius: 14, paddingVertical: 13, alignItems: "center" }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
+                {!isSelecting ? "Compare Now" : selectedIds.size < 2 ? "Select Projects" : `Compare (${selectedIds.size}) Now`}
+              </Text>
+            </TouchableOpacity>
+            {isSelecting && (
+              <TouchableOpacity onPress={cancelSelecting} style={{ marginTop: 10, alignItems: "center" }}>
+                <Text style={{ fontSize: 12, color: "#64748b", fontWeight: "600" }}>Cancel Selection</Text>
+              </TouchableOpacity>
+            )}
           </View>
-          <TouchableOpacity style={{ backgroundColor: "#1e293b", borderRadius: 14, paddingVertical: 13, alignItems: "center" }}>
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Compare Now</Text>
-          </TouchableOpacity>
-        </View>
+        )}
 
       </View>
     </ScrollView>

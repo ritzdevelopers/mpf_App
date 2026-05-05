@@ -2,6 +2,7 @@
 
 import { getImageUrl, type Project, type ProjectDetail } from "@/utils/api";
 import { useUser } from "@/utils/authStore";
+import { useFavorites, toggleFavorite } from "@/utils/favoritesStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -18,8 +19,10 @@ import {
   StatusBar,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Share
 } from "react-native";
+
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -478,7 +481,7 @@ export default function PropertyDetail({
   project: Project | null;
   detail?: ProjectDetail | null;
 }) {
-  const [liked, setLiked] = useState(false);
+  const favorites = useFavorites();
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -488,12 +491,6 @@ export default function PropertyDetail({
   const user = useUser();
   const [showContactModal, setShowContactModal] = useState(false);
 
-
-  const handleBookVisit = () => {
-
-    setShowContactModal(true);
-
-  };
 
   if (!project) {
     return (
@@ -506,6 +503,23 @@ export default function PropertyDetail({
       </View>
     );
   }
+
+  const handleBookVisit = () => {
+    setShowContactModal(true);
+  };
+
+  const onShare = async () => {
+    try {
+      const url = `https://mypropertyfact.in/${project.slugURL}`;
+      await Share.share({
+        message: `Check out this property: ${project.projectName}\n\n${url}`,
+        url: url, // iOS only
+        title: project.projectName,
+      });
+    } catch (error: any) {
+      console.error("Share error:", error.message);
+    }
+  };
 
   const configurations = (project.projectConfiguration || "")
     .split(",")
@@ -564,11 +578,18 @@ export default function PropertyDetail({
               <Ionicons name="arrow-back" size={20} color="#1e293b" />
             </TouchableOpacity>
             <View className={styles.heroRightGroup}>
-              <TouchableOpacity className={styles.heroBtn}>
+              <TouchableOpacity onPress={onShare} className={styles.heroBtn}>
                 <Ionicons name="share-social-outline" size={18} color="#1e293b" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setLiked(!liked)} className={styles.heroBtn}>
-                <Ionicons name={liked ? "heart" : "heart-outline"} size={18} color={liked ? "#ef4444" : "#1e293b"} />
+              <TouchableOpacity 
+                onPress={() => toggleFavorite(project.id)} 
+                className={styles.heroBtn}
+              >
+                <Ionicons 
+                  name={favorites.has(project.id) ? "heart" : "heart-outline"} 
+                  size={18} 
+                  color={favorites.has(project.id) ? "#ef4444" : "#1e293b"} 
+                />
               </TouchableOpacity>
             </View>
           </View>

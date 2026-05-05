@@ -16,6 +16,7 @@ import {
   type Project,
 } from "@/utils/api";
 import { projectMatchesHomeTypeTag } from "@/utils/homePropertyTypeTags";
+import { useFavorites, toggleFavorite } from "@/utils/favoritesStore";
 import { styles } from "./NewLaunchesUI";
 
 const MAX_CARDS = 8;
@@ -44,7 +45,7 @@ function openNewLaunchesListings() {
 export default function NewLaunches() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [liked, setLiked] = useState<Set<number>>(new Set());
+  const favorites = useFavorites();
 
   const openListings = useCallback(openNewLaunchesListings, []);
 
@@ -67,14 +68,6 @@ export default function NewLaunches() {
     router.push(`/propertyDetail/${slug}` as any);
   }, []);
 
-  const toggle = (id: number) => {
-    setLiked((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   if (!loading && projects.length === 0) {
     return null;
@@ -124,7 +117,6 @@ export default function NewLaunches() {
           snapToAlignment="start"
         >
           {projects.map((item) => {
-            const isLiked = liked.has(item.id);
             const uri = getImageUrl(item.slugURL, item.projectThumbnailImage);
             const loc = formatLocation(item);
             return (
@@ -152,20 +144,6 @@ export default function NewLaunches() {
                   )}
 
                   <View pointerEvents="none" style={styles.imageInsetGlow} />
-
-                  <TouchableOpacity
-                    className={styles.heartBtn}
-                    activeOpacity={0.8}
-                    onPress={() => toggle(item.id)}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    style={styles.glassHeart}
-                  >
-                    <Ionicons
-                      name={isLiked ? "heart" : "heart-outline"}
-                      size={15}
-                      color={isLiked ? "#ef4444" : "#fff"}
-                    />
-                  </TouchableOpacity>
                 </View>
 
                 <View className={styles.info} style={styles.infoGlass}>

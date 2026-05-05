@@ -2,7 +2,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useState } from "react";
+import React from "react";
 import {
   Image,
   ScrollView,
@@ -131,16 +131,6 @@ const HERO = StyleSheet.create({
 });
 
 export default function AllCities() {
-  const [liked, setLiked] = useState<Set<string>>(new Set());
-
-  const toggle = (name: string) => {
-    setLiked((prev) => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
-  };
-
   return (
     <SafeAreaView edges={["top"]} className={styles.safe}>
       {/* ── Top bar ── */}
@@ -161,7 +151,7 @@ export default function AllCities() {
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero — dark gradient, glow accents (Expo Go–safe, no BlurView) */}
+        {/* Hero */}
         <View style={HERO.shell}>
           <LinearGradient
             colors={["#0b1220", "#152a4a", "#0f1f38"]}
@@ -236,20 +226,6 @@ export default function AllCities() {
                 <View className={styles.tagPill}>
                   <Text className={styles.tagText}>{city.tag}</Text>
                 </View>
-
-                {/* Heart */}
-                <TouchableOpacity
-                  className={styles.heartBtn}
-                  activeOpacity={0.8}
-                  onPress={() => toggle(city.name)}
-                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                >
-                  <Ionicons
-                    name={liked.has(city.name) ? "heart" : "heart-outline"}
-                    size={14}
-                    color={liked.has(city.name) ? "#ef4444" : "#fff"}
-                  />
-                </TouchableOpacity>
 
                 <View className={styles.glassFooter}>
                   <Text className={styles.city}>{city.name}</Text>

@@ -1,4 +1,5 @@
 import { fetchProjects, prefetchProjectImages } from '@/utils/api';
+import { hydrateFavorites } from '@/utils/favoritesStore';
 import { hydrateSession } from '@/utils/authStore';
 import { Ionicons } from '@expo/vector-icons';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -102,7 +103,9 @@ export default function RootLayout() {
       })
       .catch(() => null);
     const session = hydrateSession().catch(() => null);
-    Promise.all([minWait, apiFetch, session]).then(() => setSplashDone(true));
+    const favorites = hydrateFavorites().catch(() => null);
+
+    Promise.all([minWait, apiFetch, session, favorites]).then(() => setSplashDone(true));
   }, []);
 
   if (!splashDone) return <SplashOverlay />;

@@ -1,10 +1,9 @@
-// components/PropertyTypes/index.tsx
-
-import React from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { fetchProjects, getProjectsCache, type Project } from "@/utils/api";
+import { projectMatchesHomeTypeTag, type HomePropertyTypeTag } from "@/utils/homePropertyTypeTags";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import type { HomePropertyTypeTag } from "@/utils/homePropertyTypeTags";
+import React, { useEffect, useState } from "react";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 /** One distinct asset per card; image area is fixed + cover so all rows align. */
 const IMAGES = {
@@ -13,22 +12,11 @@ const IMAGES = {
   residential: require("@/assets/images/b2.webp"),
 } as const;
 
-const propertyTypes: {
-  id: number;
-  title: string;
-  tag: HomePropertyTypeTag;
-  count: string;
-  label: string;
-  bg: string;
-  accent: string;
-  image: (typeof IMAGES)[keyof typeof IMAGES];
-}[] = [
+const STATIC_PROPERTY_TYPES = [
   {
     id: 1,
     title: "Commercial",
-    tag: "Commercial",
-    count: "2,400+",
-    label: "Properties",
+    tag: "Commercial" as HomePropertyTypeTag,
     bg: "#EEF2F7",
     accent: "#1e3a5f",
     image: IMAGES.commercial,
@@ -36,9 +24,7 @@ const propertyTypes: {
   {
     id: 2,
     title: "New\nLaunches",
-    tag: "New Launches",
-    count: "1,100+",
-    label: "Properties",
+    tag: "New Launches" as HomePropertyTypeTag,
     bg: "#ECFDF5",
     accent: "#059669",
     image: IMAGES.newLaunches,
@@ -46,9 +32,7 @@ const propertyTypes: {
   {
     id: 3,
     title: "Residential",
-    tag: "Residential",
-    count: "16,000+",
-    label: "Properties",
+    tag: "Residential" as HomePropertyTypeTag,
     bg: "#FFF8EC",
     accent: "#d89b38",
     image: IMAGES.residential,
@@ -56,6 +40,36 @@ const propertyTypes: {
 ];
 
 export default function PropertyTypes() {
+  const [counts, setCounts] = useState<Record<string, string>>({
+    "Commercial": "+",
+    "New Launches": "+",
+    "Residential": "+",
+  });
+
+  useEffect(() => {
+    // 1. Check cache first for instant results
+    const cached = getProjectsCache();
+    if (cached?.length) {
+      calculateCounts(cached);
+    }
+
+    // 2. Fetch fresh data
+    fetchProjects()
+      .then((data) => {
+        if (data?.length) calculateCounts(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const calculateCounts = (list: Project[]) => {
+    const newCounts: Record<string, string> = {};
+    for (const item of STATIC_PROPERTY_TYPES) {
+      const total = list.filter((p) => projectMatchesHomeTypeTag(p, item.tag)).length;
+      newCounts[item.tag] = total > 0 ? `${total.toLocaleString()}` : "+";
+    }
+    setCounts(newCounts);
+  };
+
   return (
     <View className="bg-slate-50 px-4 pt-5 pb-6">
       <View className="flex-row justify-between items-center mb-4">
@@ -77,7 +91,7 @@ export default function PropertyTypes() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 4 }}
       >
-        {propertyTypes.map((item) => (
+        {STATIC_PROPERTY_TYPES.map((item) => (
           <TouchableOpacity
             key={item.id}
             className="mr-4 w-52 rounded-2xl overflow-hidden"
@@ -94,9 +108,9 @@ export default function PropertyTypes() {
               </Text>
               <View className="flex-row items-baseline mt-1">
                 <Text className="text-xl font-extrabold" style={{ color: item.accent }}>
-                  {item.count}
+                  {counts[item.tag]}
                 </Text>
-                <Text className="text-xs text-slate-500 ml-1">{item.label}</Text>
+                <Text className="text-xs text-slate-500 ml-1">Properties</Text>
               </View>
             </View>
             <View style={cardStyles.imageWrap}>

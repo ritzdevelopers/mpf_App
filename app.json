@@ -5,7 +5,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "mypropertyfact",
+
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "owner": "simran_singh123",
@@ -49,10 +50,9 @@
           }
         }
       ],
-      "expo-secure-store",
-      "@react-native-firebase/app",
-      "@react-native-firebase/messaging"
+      "expo-secure-store"
     ],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": false

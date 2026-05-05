@@ -80,11 +80,6 @@ export default function SimilarProperties() {
                     <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{item.projectStatusName}</Text>
                   </View>
 
-                  {/* Heart */}
-                  <TouchableOpacity className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/30 items-center justify-center">
-                    <Ionicons name="heart-outline" size={16} color="white" />
-                  </TouchableOpacity>
-
                   {/* Price overlay */}
                   <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "rgba(0,0,0,0.45)", paddingHorizontal: 12, paddingVertical: 7 }}>
                     <Text style={{ color: "#fff", fontSize: 13, fontWeight: "700" }}>₹{item.projectPrice} Cr</Text>
