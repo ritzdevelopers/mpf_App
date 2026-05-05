@@ -4,14 +4,8 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { signOut, useUser } from "../../utils/authStore";
 
@@ -312,17 +306,24 @@ const styles = StyleSheet.create({
 
   /* Glassmorphism card */
   glass: {
-    backgroundColor: "rgba(255,255,255,0.75)",
-    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.9)",
+    borderColor: "rgba(255,255,255,0.4)",
     padding: 16,
-    shadowColor: "#6366f1",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#6366f1",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.08,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 0,
+      }
+    })
   },
+
 
   sectionTitle: {
     fontSize: 17,

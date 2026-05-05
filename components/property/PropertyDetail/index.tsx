@@ -509,8 +509,17 @@ export default function PropertyDetail({
 
   const configurations = (project.projectConfiguration || "")
     .split(",")
-    .map((c) => c.trim())
+    .map((c) => {
+      const val = c.trim();
+      if (!val) return "";
+      // If it doesn't contain BHK or RK, append BHK
+      if (!val.toLowerCase().includes("bhk") && !val.toLowerCase().includes("rk")) {
+        return `${val} BHK`;
+      }
+      return val;
+    })
     .filter(Boolean);
+
   const bannerUri = getImageUrl(project.slugURL, project.projectBannerImage || project.projectThumbnailImage);
   const thumbnailUri = getImageUrl(project.slugURL, project.projectThumbnailImage);
   const priceNum = parseFloat(project.projectPrice || "0");

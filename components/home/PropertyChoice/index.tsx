@@ -10,6 +10,7 @@ const bhkData = [
   { id: 2, title: "2 BHK",         count: "5,200+",  icon: "home-outline"   },
   { id: 3, title: "3 BHK",         count: "4,100+",  icon: "home-outline"   },
   { id: 4, title: "4 BHK+",        count: "1,800+",  icon: "business-outline"},
+
 ];
 
 const postedByData = [

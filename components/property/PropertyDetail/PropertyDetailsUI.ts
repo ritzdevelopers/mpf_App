@@ -38,13 +38,14 @@ export const styles = {
 
   /* ── SHARED CARD ── */
   content: "px-4 mt-4",
-  glass:
-    "bg-white/90 rounded-[20px] border border-white p-4 shadow-sm",
+  glass: "bg-white/85 rounded-[24px] border border-white/40 p-4",
   cardSpacing: "mt-3",
+
 
   /* ── STAT CHIPS ROW ── */
   statRow: "flex-row gap-2",
-  statChip: "flex-1 items-center py-3.5 bg-white/90 rounded-[20px] border border-white shadow-sm",
+  statChip: "flex-1 items-center py-3.5 bg-white/85 rounded-[24px] border border-white/40",
+
   statIconWrap: "rounded-xl p-1.5 mb-1.5",
   statLabel: "text-[10px] text-slate-400 mb-0.5",
   statValue: "text-[12px] font-bold text-slate-800 text-center",

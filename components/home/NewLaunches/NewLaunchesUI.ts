@@ -54,16 +54,16 @@ export const styles = {
     backgroundColor: "rgba(255,255,255,0.12)",
   },
 
-  info: "mx-3.5 -mt-4 mb-3 p-4 rounded-[24px] border border-white/75",
+  info: "mx-3.5 -mt-4 mb-3 p-4 rounded-[24px] border border-white/40",
   infoGlass: {
     overflow: "hidden" as const,
-    backgroundColor: "rgba(255,255,255,0.58)",
-    shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 4,
+    backgroundColor: "rgba(255,255,255,0.75)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
+
   infoTopRow: "flex-row items-start justify-between",
   titleWrap: "flex-1 pr-3",
   projectName: "text-[15px] font-extrabold text-slate-700",
