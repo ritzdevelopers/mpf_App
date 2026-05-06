@@ -7,6 +7,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Text, View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 import { enableFreeze } from 'react-native-screens';
 import '../global.css';
@@ -16,6 +17,9 @@ import '../global.css';
 // after rapid tab switches, which renders as a blank white screen. We prefer
 // the small memory cost over the blank-screen bug.
 enableFreeze(false);
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 const MIN_SPLASH_MS = 2000;
 const { width } = Dimensions.get('window');
@@ -105,7 +109,15 @@ export default function RootLayout() {
     const session = hydrateSession().catch(() => null);
     const favorites = hydrateFavorites().catch(() => null);
 
-    Promise.all([minWait, apiFetch, session, favorites]).then(() => setSplashDone(true));
+    Promise.all([minWait, apiFetch, session, favorites]).then(() => {
+      setSplashDone(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    // Hide the native splash screen as soon as this component mounts
+    // to reveal the custom animated SplashOverlay.
+    SplashScreen.hideAsync();
   }, []);
 
   if (!splashDone) return <SplashOverlay />;

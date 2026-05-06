@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-  SafeAreaView,
-  StatusBar,
-} from "react-native";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter, Stack, useLocalSearchParams } from "expo-router";
 import { fetchProjects, getImageUrl, getProjectsCache, type Project } from "@/utils/api";
 import { useFavorites } from "@/utils/favoritesStore";
-import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const { width } = Dimensions.get("window");
 const COLUMN_WIDTH = 240;
@@ -156,7 +155,7 @@ export default function CompareScreen() {
             </View>
 
             {/* COMPARISON ROWS */}
-            <ScrollView vertical showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+            <ScrollView  showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
               {features.map((feat, idx) => (
                 <View key={idx} className="flex-row mx-4 mb-2 rounded-2xl overflow-hidden">
                   {/* Fixed Label Column */}
