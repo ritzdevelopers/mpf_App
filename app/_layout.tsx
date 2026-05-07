@@ -5,9 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Text, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Animated, Dimensions, Text, View } from 'react-native';
 import 'react-native-reanimated';
 import { enableFreeze } from 'react-native-screens';
 import '../global.css';
@@ -114,13 +115,25 @@ export default function RootLayout() {
     });
   }, []);
 
-  useEffect(() => {
-    // Hide the native splash screen as soon as this component mounts
-    // to reveal the custom animated SplashOverlay.
-    SplashScreen.hideAsync();
+  const onLayoutRootView = useCallback(async () => {
+    // This is called when the first layout of the custom splash screen is complete.
+    // Hiding the native splash here prevents the "black screen" flicker.
+    await SplashScreen.hideAsync();
   }, []);
 
-  if (!splashDone) return <SplashOverlay />;
+  useEffect(() => {
+    // Set the root view background color natively to match our splash theme.
+    // This provides a fallback if there's any gap between screens.
+    SystemUI.setBackgroundColorAsync('#EEF2FF');
+  }, []);
+
+  if (!splashDone) {
+    return (
+      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+        <SplashOverlay />
+      </View>
+    );
+  }
 
   return (
     <ThemeProvider value={DefaultTheme}>

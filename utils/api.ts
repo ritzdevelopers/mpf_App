@@ -71,7 +71,7 @@ export interface BuilderInfo {
   slugURL?: string;
 }
 
-export interface ProjectDetail {
+export interface ProjectDetail { 
   id: number;
   slugURL: string;
   projectName: string;

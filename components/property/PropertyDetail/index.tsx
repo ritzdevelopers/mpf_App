@@ -968,6 +968,8 @@ export default function PropertyDetail({
       <ContactFormModal
         visible={showContactModal}
         onClose={() => setShowContactModal(false)}
+        pageName="detailed page"
+        projectLink={`https://mypropertyfact.in/${project.slugURL}`}
       />
 
 

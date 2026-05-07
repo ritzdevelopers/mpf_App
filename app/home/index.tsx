@@ -62,6 +62,8 @@ export default function HomeScreen() {
       <ContactFormModal
         visible={showForm}
         onClose={() => setShowForm(false)}
+        pageName="home page"
+        projectLink="https://mypropertyfact.in"
       />
 
     </View>

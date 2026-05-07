@@ -1,24 +1,22 @@
+import { SendButton } from "@/components/common/ui/ButtonUI/ButtonUI";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView, Text, TextInput, TouchableOpacity,
-    View,
-} from "react-native";
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, } from "react-native";
 import { styles } from "./ContactFormModalUI";
-import { SendButton } from "@/components/common/ui/ButtonUI/ButtonUI";
+
+import api from "@/services/api";
 
 
 export default function ContactFormModal({
     visible,
     onClose,
+    pageName,
+    projectLink,
 }: {
     visible: boolean;
     onClose: () => void;
+    pageName: "home page" | "detailed page";
+    projectLink?: string;
 }) {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -26,8 +24,10 @@ export default function ContactFormModal({
     const [message, setMessage] = useState("");
     const [focused, setFocused] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const validate = () => {
+        if (loading) return false;
         if (!name.trim() || name.trim().length < 2) {
             setError("Please enter your full name");
             return false;
@@ -47,12 +47,34 @@ export default function ContactFormModal({
     };
 
 
-    const handleSubmit = () => {
-        console.log({ name, email, phone, message });
-        // Give time for the "Sent!" animation to show before closing
-        setTimeout(() => {
-            onClose();
-        }, 1500);
+    const handleSubmit = async () => {
+        try {
+            setLoading(true);
+            await api.post("/enquiry/post-app", {
+                name,
+                email,
+                phone,
+                message,
+                pageName,
+                projectLink,
+            });
+
+            // Give time for the "Sent!" animation to show before closing
+            setTimeout(() => {
+                onClose();
+                // Reset form
+                setName("");
+                setEmail("");
+                setPhone("");
+                setMessage("");
+                setError("");
+            }, 1800);
+        } catch (err: any) {
+            console.error("Enquiry Submission Error:", err);
+            setError(err?.response?.data?.message || "Failed to submit. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
 
