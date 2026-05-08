@@ -12,6 +12,7 @@ import {
 import {
   fetchProjects,
   getImageUrl,
+  getBuilderLogoUrl,
   getProjectsCache,
   type Project,
 } from "@/utils/api";
@@ -83,7 +84,9 @@ export default function TopPickCard() {
       ? getImageUrl(project.slugURL, project.projectThumbnailImage)
       : "";
   const logoUri =
-    project && project.projectLogo
+    project && project.builderLogo && project.builderSlug
+      ? getBuilderLogoUrl(project.builderSlug, project.builderLogo)
+      : project && project.projectLogo
       ? getImageUrl(project.slugURL, project.projectLogo)
       : "";
 

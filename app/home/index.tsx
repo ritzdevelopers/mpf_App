@@ -47,7 +47,7 @@ export default function HomeScreen() {
         <PopularTools />
         <NewLaunches />
         <CityProperty />
-        <PopularBuilders/>
+        <PopularBuilders />
         <ExploreNearby />
         <EnquiryMiniCard onPress={() => setShowForm(true)} />
       </ScrollView>

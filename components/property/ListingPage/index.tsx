@@ -33,6 +33,7 @@ import {
   View,
 } from "react-native";
 import { styles } from "./listingUI";
+import ContactFormModal from "../ContactFormModal";
 
 const PAGE_SIZE = 20;
 
@@ -50,7 +51,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 
 const IMAGE_STYLE = { width: "100%" as const, height: 260 };
 
-const PropertyCard = memo(function PropertyCard({ item }: { item: Project }) {
+const PropertyCard = memo(function PropertyCard({ item, onEnquiryPress }: { item: Project; onEnquiryPress: (link: string) => void }) {
   const onPress = useCallback(() => {
     // Problem 1 Fix: Fire the fetch immediately on tap to populate detailCache
     // By the time the screen mounts, data may already be ready
@@ -98,10 +99,13 @@ const PropertyCard = memo(function PropertyCard({ item }: { item: Project }) {
           </View>
         </View>
         <View className={styles.buttonRow}>
-          <TouchableOpacity className={styles.outlineBtn}>
+          <TouchableOpacity className={styles.outlineBtn} onPress={onPress}>
             <Text className={styles.outlineText}>Brochure</Text>
           </TouchableOpacity>
-          <TouchableOpacity className={styles.fillBtn}>
+          <TouchableOpacity 
+            className={styles.fillBtn} 
+            onPress={() => onEnquiryPress(`https://mypropertyfact.in/${item.slugURL}`)}
+          >
             <Text className={styles.fillText}>View Number</Text>
           </TouchableOpacity>
         </View>
@@ -309,9 +313,22 @@ export default function ListingsPage() {
 
 
 
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedProjectLink, setSelectedProjectLink] = useState("");
+
+  const handleEnquiryPress = useCallback((link: string) => {
+    setSelectedProjectLink(link);
+    setShowContactModal(true);
+  }, []);
+
   const renderCard = useCallback(
-    ({ item }: { item: Project }) => <PropertyCard item={item} />,
-    []
+    ({ item }: { item: Project }) => (
+      <PropertyCard 
+        item={item} 
+        onEnquiryPress={handleEnquiryPress} 
+      />
+    ),
+    [handleEnquiryPress]
   );
 
   // ── list header ──
@@ -528,13 +545,17 @@ export default function ListingsPage() {
                     key={t}
                     onPress={() => { setFilterType(t); setDropdown(null); }}
                     style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                       paddingHorizontal: 16,
                       paddingVertical: 15,
                       borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth,
                       borderTopColor: "#e2e8f0",
                     }}
                   >
-                    <Text style={{ fontSize: 16, color: "#0f172a", fontWeight: "500" }}>{t}</Text>
+                    <Text style={{ fontSize: 16, color: filterType === t ? "#d89b38" : "#0f172a", fontWeight: filterType === t ? "700" : "500" }}>{t}</Text>
+                    {filterType === t && <Ionicons name="checkmark" size={18} color="#d89b38" />}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -583,10 +604,12 @@ export default function ListingsPage() {
                     onPress={() => { setFilterStatus(s); setDropdown(null); }}
                     style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: 1, borderTopColor: "#f8fafc" }}
                   >
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+                    <Text style={{ fontSize: 14, color: filterStatus === s ? "#d89b38" : "#1e293b", fontWeight: filterStatus === s ? "700" : "400" }}>{s}</Text>
+                    {filterStatus === s && <Ionicons name="checkmark" size={18} color="#d89b38" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
             {/* Builder */}
             {dropdown === "builder" && (
@@ -626,6 +649,13 @@ export default function ListingsPage() {
 
         </Pressable>
       </Modal>
+
+      <ContactFormModal
+        visible={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        pageName="listing page"
+        projectLink={selectedProjectLink}
+      />
     </View>
   );
 }

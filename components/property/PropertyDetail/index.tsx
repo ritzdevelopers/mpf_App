@@ -1,12 +1,19 @@
 // components/PropertyDetail/index.tsx
 
-import { getImageUrl, type Project, type ProjectDetail } from "@/utils/api";
+import { 
+  getImageUrl, 
+  getBuilderLogoUrl, 
+  fetchBuilderDetail, 
+  type Project, 
+  type ProjectDetail, 
+  type BuilderInfo 
+} from "@/utils/api";
 import { useUser } from "@/utils/authStore";
-import { useFavorites, toggleFavorite } from "@/utils/favoritesStore";
+import { toggleFavorite, useFavorites } from "@/utils/favoritesStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -16,11 +23,11 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Share,
   StatusBar,
   Text,
   TouchableOpacity,
-  View,
-  Share
+  View
 } from "react-native";
 
 import {
@@ -490,6 +497,13 @@ export default function PropertyDetail({
   const scrollY = useRef(0);
   const user = useUser();
   const [showContactModal, setShowContactModal] = useState(false);
+  const [builderData, setBuilderData] = useState<BuilderInfo | null>(null);
+
+  useEffect(() => {
+    if (project?.builderSlug) {
+      fetchBuilderDetail(project.builderSlug).then(setBuilderData);
+    }
+  }, [project?.builderSlug]);
 
 
   if (!project) {
@@ -873,26 +887,60 @@ export default function PropertyDetail({
           <GlassCard className={styles.cardSpacing}>
             <SectionHeader icon="business-outline" title="Builder / Developer" color="#2563eb" subtitle="About the company" />
             <View className={styles.builderRow}>
-              <View className={styles.builderLogoWrap}>
-                <Image
-                  source={{ uri: getImageUrl(project.slugURL, project.projectLogo) }}
-                  style={{ width: 52, height: 52 }}
-                  contentFit="contain"
-                  cachePolicy="memory-disk"
-                  transition={150}
-                />
+              <View 
+                className={styles.builderLogoWrap} 
+                style={{ 
+                  width: 90, height: 60, 
+                  borderRadius: 8, 
+                  backgroundColor: "#f8fafc",
+                  borderWidth: 1,
+                  borderColor: "#f1f5f9",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 2,
+                  elevation: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: 6,
+                  overflow: "hidden"
+                }}
+              >
+                {(builderData?.builderLogo || detail?.builder?.builderLogo) ? (
+                  <Image
+                    source={{ 
+                      uri: (builderData?.builderLogo && (builderData?.slugURL || project.builderSlug))
+                        ? getBuilderLogoUrl(builderData.slugURL || project.builderSlug, builderData.builderLogo)
+                        : (detail?.builder?.builderLogo && (detail?.builder?.slugURL || project.builderSlug))
+                        ? getBuilderLogoUrl(detail.builder.slugURL || project.builderSlug, detail.builder.builderLogo)
+                        : "" 
+                    }}
+                    style={{ width: "100%", height: "100%" }}
+                    contentFit="contain"
+                    cachePolicy="memory-disk"
+                    transition={150}
+                  />
+                ) : (
+                  <Text style={{ fontSize: 24, fontWeight: "bold", color: "#94a3b8" }}>
+                    {(builderData?.builderName || project.builderName || "?")[0].toUpperCase()}
+                  </Text>
+                )}
               </View>
-              <View style={{ flex: 1 }}>
-                <Text className={styles.builderName}>{project.builderName}</Text>
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                <Text className={styles.builderName} style={{ fontSize: 18, fontWeight: "700", color: "#1e293b" }}>
+                  {builderData?.builderName || project.builderName}
+                </Text>
                 <View className={styles.builderMeta}>
-                  <Ionicons name="location-outline" size={11} color="#94a3b8" />
-                  <Text className={styles.builderMetaText}>{project.cityName}</Text>
+                  <Ionicons name="location-outline" size={13} color="#64748b" />
+                  <Text className={styles.builderMetaText} style={{ fontSize: 13, color: "#64748b", marginLeft: 4 }}>
+                    {project.cityName}
+                  </Text>
                 </View>
               </View>
             </View>
-            {!!detail?.builder?.builderDescription && (
+            {(!!builderData?.builderDescription || !!detail?.builder?.builderDescription) && (
               <Text className={styles.builderDesc}>
-                {stripHtml(detail.builder.builderDescription)}
+                {stripHtml(builderData?.builderDescription || detail?.builder?.builderDescription || "")}
               </Text>
             )}
           </GlassCard>
@@ -966,11 +1014,10 @@ export default function PropertyDetail({
       </View>
 
       <ContactFormModal
-        visible={showContactModal}
-        onClose={() => setShowContactModal(false)}
-        pageName="detailed page"
-        projectLink={`https://mypropertyfact.in/${project.slugURL}`}
-      />
+      visible={showContactModal}
+      onClose={() => setShowContactModal(false)}
+      pageName="detailed page"
+      projectLink={`https://mypropertyfact.in/${project.slugURL}`}/>
 
 
 

@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 
 const IMAGE_BASE = "https://apis.mypropertyfact.in/api/v1/get/images/properties/";
+const BUILDER_IMAGE_BASE = "https://apis.mypropertyfact.in/api/v1/get/images/builders/";
 
 export function getImageUrl(slugURL: string, filename: string): string {
   if (!filename) return "";
@@ -9,6 +10,12 @@ export function getImageUrl(slugURL: string, filename: string): string {
   // then encodeURIComponent each part so special characters like #, ?, and & are encoded properly.
   const safeFilename = filename.split('/').map(encodeURIComponent).join('/');
   return `${IMAGE_BASE}${slugURL}/${safeFilename}`;
+}
+
+export function getBuilderLogoUrl(builderSlug: string, filename: string): string {
+  if (!filename || !builderSlug) return "";
+  const safeFilename = filename.split('/').map(encodeURIComponent).join('/');
+  return `${BUILDER_IMAGE_BASE}${builderSlug}/${safeFilename}`;
 }
 
 export interface Project {
@@ -27,6 +34,7 @@ export interface Project {
   projectThumbnailImage: string;
   projectBannerImage: string;
   projectLogo: string;
+  builderLogo?: string;
   builderSlug: string;
   citySlug: string;
 }
@@ -68,6 +76,7 @@ export interface BuilderInfo {
   id: number;
   builderName: string;
   builderDescription?: string;
+  builderLogo?: string;
   slugURL?: string;
 }
 
@@ -226,6 +235,29 @@ export async function fetchProjects(): Promise<Project[]> {
 
   // 3. Nothing saved — first ever launch, must wait for internet
   return _fetchAndCacheProjects();
+}
+
+const builderCache: Record<string, BuilderInfo> = {};
+
+export async function fetchBuilderDetail(slug: string): Promise<BuilderInfo | null> {
+  if (!slug) return null;
+  if (builderCache[slug]) return builderCache[slug];
+
+  try {
+    console.log("[API] Fetching builder detail:", slug);
+    const { status, body } = await rawGet(
+      `https://apis.mypropertyfact.in/api/v1/builder/get/${slug}`
+    );
+    if (status !== 200) return null;
+    const data = JSON.parse(body);
+    // The API might return { data: BuilderInfo } or just BuilderInfo
+    const builderData: BuilderInfo = data?.data || data;
+    builderCache[slug] = builderData;
+    return builderData;
+  } catch (err) {
+    console.error("[API] fetchBuilderDetail failed:", err);
+    return null;
+  }
 }
 
 async function _fetchAndCacheProjects(): Promise<Project[]> {
