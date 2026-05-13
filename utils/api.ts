@@ -155,8 +155,8 @@ export async function fetchProjectDetail(slug: string): Promise<ProjectDetail | 
   if (detailCache[slug]) return detailCache[slug];
 
   // If a request is already in-flight, just wait for that one to finish!
-  if (await detailPromises[slug]) {
-    return detailPromises[slug];
+  if (slug in detailPromises) {
+    return await detailPromises[slug];
   }
 
   // Wrap the actual fetch logic in a promise that we store
@@ -183,7 +183,8 @@ export async function fetchProjectDetail(slug: string): Promise<ProjectDetail | 
         console.error("[API] Detail error:", body.substring(0, 300));
         return null;
       }
-      const data: ProjectDetail = JSON.parse(body);
+      const json = JSON.parse(body);
+      const data: ProjectDetail = json?.data || json;
       detailCache[slug] = data;
 
       // Persist to disk in the background — don't await

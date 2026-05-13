@@ -12,6 +12,8 @@ import { Animated, Dimensions, Text, View } from 'react-native';
 import 'react-native-reanimated';
 import { enableFreeze } from 'react-native-screens';
 import '../global.css';
+import NotificationSetup from '@/components/common/NotificationSetup';
+
 
 // Disable react-native-screens' freeze-on-blur optimization globally.
 // On the new architecture it can leave a tab screen stuck with display:none
@@ -137,7 +139,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={DefaultTheme}>
+      <NotificationSetup />
       <Stack>
+
         <Stack.Screen name="(tabs)"              options={{ headerShown: false }} />
         <Stack.Screen name="popular_tools"       options={{ headerShown: false }} />
         <Stack.Screen name="listings/index"      options={{ headerShown: false }} />

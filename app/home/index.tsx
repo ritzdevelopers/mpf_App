@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import NotificationSetup from "@/components/common/NotificationSetup";
 import CategoryCarousel from "@/components/home/CategoryCaraousel";
 import CityProperty from "@/components/home/CityProperty";
 import EnquiryMiniCard from "@/components/home/EnquiryMiniCard";
@@ -29,8 +28,6 @@ export default function HomeScreen() {
   return (
     <View className="flex-1">
        
-
-      <NotificationSetup/>
 
       <ScrollView
         className={styles.container}
