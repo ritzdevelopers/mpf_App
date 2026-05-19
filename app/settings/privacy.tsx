@@ -5,7 +5,7 @@ import { Stack } from "expo-router";
 import BackHeader from "@/components/layout/BackHeader";
 
 interface PolicySectionProps {
-  icon: keyof typeof Ionicons.nameMap;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
   title: string;
   body: string;
 }
