@@ -6,7 +6,7 @@ export const styles = {
   titleRow: "flex-row items-center",
   titleIcon:
     "w-7 h-7 rounded-lg bg-green-100 items-center justify-center mr-2",
-  title: "text-xl font-extrabold text-slate-400",
+  title: "text-xl font-extrabold text-slate-900",
   subtitle: "text-xs text-slate-500 mt-1 ml-0.5",
   viewAllBtn:
     "flex-row items-center bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200",

@@ -4,7 +4,8 @@ import { fetchProjects, getImageUrl, getProjectsCache, type Project } from "@/ut
 import { toggleFavorite, useFavorites } from "@/utils/favoritesStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -20,6 +21,8 @@ export default function SavedScreen() {
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isSelecting, setIsSelecting] = useState(false);
+  const isFocused = useIsFocused();
+  const scrollViewRef = useRef<ScrollView>(null);
   
   // Filter the full list to only show properties the user has favorited
   const savedProjects = allProjects.filter(p => favoriteIds.has(p.id));
@@ -61,6 +64,12 @@ export default function SavedScreen() {
   };
 
   useEffect(() => {
+    if (isFocused) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    }
+  }, [isFocused]);
+
+  useEffect(() => {
     // 1. Try cache first
     const cached = getProjectsCache();
     if (cached) setAllProjects(cached);
@@ -73,7 +82,11 @@ export default function SavedScreen() {
   const newLaunchCount = savedProjects.filter(p => p.projectStatusName === "New Launch").length;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#f1f5f9" }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={scrollViewRef}
+      style={{ flex: 1, backgroundColor: "#f1f5f9" }}
+      showsVerticalScrollIndicator={false}
+    >
 
       {/* ── HEADER ── */}
       <View style={{ backgroundColor: "#fff", paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" }}>

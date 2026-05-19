@@ -98,17 +98,6 @@ const PropertyCard = memo(function PropertyCard({ item, onEnquiryPress }: { item
             <Text className={styles.price} numberOfLines={1}>{item.propertyTypeName}</Text>
           </View>
         </View>
-        <View className={styles.buttonRow}>
-          <TouchableOpacity className={styles.outlineBtn} onPress={onPress}>
-            <Text className={styles.outlineText}>Brochure</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className={styles.fillBtn} 
-            onPress={() => onEnquiryPress(`https://mypropertyfact.in/${item.slugURL}`)}
-          >
-            <Text className={styles.fillText}>View Number</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </TouchableOpacity>
   );

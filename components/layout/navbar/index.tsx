@@ -1,12 +1,11 @@
-// components/navbar/index.tsx
-
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import LatestReminders from "@/components/common/LatestReminders";
 
 export default function Navbar({ onMenuPress }: { onMenuPress?: () => void }) {
   return (
-    <View className="flex-row items-center justify-between px-4 pt-14 pb-3 bg-white border-b border-slate-100">
+    <View className="flex-row items-center justify-between px-4 pt-14 pb-3 bg-transparent">
       {/* Menu */}
       <TouchableOpacity
         onPress={onMenuPress}
@@ -27,9 +26,7 @@ export default function Navbar({ onMenuPress }: { onMenuPress?: () => void }) {
 
       {/* Actions */}
       <View className="flex-row items-center gap-2">
-        <TouchableOpacity className="h-10 w-10 rounded-xl bg-slate-50 items-center justify-center border border-slate-200">
-          <Ionicons name="notifications-outline" size={20} color="#334155" />
-        </TouchableOpacity>
+        <LatestReminders />
       </View>
     </View>
   );

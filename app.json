@@ -8,6 +8,7 @@
     "scheme": "mypropertyfact",
 
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#ffffff",
     "newArchEnabled": true,
     "owner": "simran_singh123",
 
@@ -43,6 +44,7 @@
     "plugins": [
       "expo-router",
       "expo-notifications",
+      "@react-native-firebase/app",
       [
         "expo-splash-screen",
         {

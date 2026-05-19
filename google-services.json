@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "467098024242",
-    "project_id": "backend-4faa7",
-    "storage_bucket": "backend-4faa7.firebasestorage.app"
+    "project_number": "389565885383",
+    "project_id": "appnotification-27e18",
+    "storage_bucket": "appnotification-27e18.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:467098024242:android:f62b11e6811af567a2ff2b",
+        "mobilesdk_app_id": "1:389565885383:android:15ecf42801e212d9fd47e2",
         "android_client_info": {
           "package_name": "in.mypropertyfact.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDiSUlUiPEw_tFTj_Jcee_cMKv8q8O9_Zc"
+          "current_key": "AIzaSyBQSZ62r8sKIJ2K0wle_7M4BLp875vhMtE"
         }
       ],
       "services": {

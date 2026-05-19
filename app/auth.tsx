@@ -318,20 +318,7 @@ export default function AuthScreen() {
               )}
             </TouchableOpacity>
 
-            {/* ── DIVIDER ── */}
-            <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 18 }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: "#e2e8f0" }} />
-              <Text style={{ color: "#94a3b8", fontSize: 12, marginHorizontal: 12, fontWeight: "500" }}>
-                or continue with
-              </Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: "#e2e8f0" }} />
-            </View>
 
-            {/* ── SOCIAL BUTTONS ── */}
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <SocialBtn icon="logo-google" label="Google" color="#DB4437" />
-              <SocialBtn icon="logo-apple"  label="Apple"  color="#000000" />
-            </View>
           </Animated.View>
 
           {/* ── FOOTER ── */}
@@ -408,17 +395,4 @@ function Field({
   );
 }
 
-/* ── Social auth button ── */
-function SocialBtn({ icon, label, color }: { icon: string; label: string; color: string }) {
-  return (
-    <TouchableOpacity style={{
-      flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
-      gap: 8, paddingVertical: 13,
-      backgroundColor: "#fff",
-      borderRadius: 14, borderWidth: 1.5, borderColor: "#e2e8f0",
-    }}>
-      <Ionicons name={icon as any} size={20} color={color} />
-      <Text style={{ fontSize: 14, fontWeight: "600", color: "#1e293b" }}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
+

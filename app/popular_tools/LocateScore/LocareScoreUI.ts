@@ -5,16 +5,16 @@ export const styles = {
     "flex-1 bg-slate-50 px-4 pt-2",
 
   hero:
-    "bg-gradient-to-br from-violet-600 to-fuchsia-500 rounded-3xl p-5",
+    "items-center pt-6 pb-2 px-4 bg-transparent",
 
   iconBox:
-    "h-14 w-14 rounded-2xl bg-white/20 items-center justify-center",
+    "h-16 w-16 rounded-2xl bg-purple-50 items-center justify-center border border-purple-100",
 
   title:
-    "text-white text-3xl font-bold mt-4",
+    "text-slate-900 text-3xl font-black mt-3 text-center",
 
   subTitle:
-    "text-violet-100 text-base mt-2 leading-6",
+    "text-slate-500 text-sm mt-2 text-center px-4 leading-5",
 
   formCard:
     "bg-white rounded-3xl p-5 mt-5 shadow-sm border border-slate-100",

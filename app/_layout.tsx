@@ -1,18 +1,21 @@
+import NotificationSetup from '@/components/common/NotificationSetup';
 import { fetchProjects, prefetchProjectImages } from '@/utils/api';
-import { hydrateFavorites } from '@/utils/favoritesStore';
 import { hydrateSession } from '@/utils/authStore';
+import { hydrateFavorites } from '@/utils/favoritesStore';
+import { hydrateRecentViews } from '@/utils/recentViewsStore';
 import { Ionicons } from '@expo/vector-icons';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Text, View } from 'react-native';
 import 'react-native-reanimated';
 import { enableFreeze } from 'react-native-screens';
+import * as Device from 'expo-device';
+import * as Network from 'expo-network';
 import '../global.css';
-import NotificationSetup from '@/components/common/NotificationSetup';
 
 
 // Disable react-native-screens' freeze-on-blur optimization globally.
@@ -103,6 +106,35 @@ export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
+    // Print device details, timezone, country, and network type in the terminal immediately on startup
+    const logTelemetry = async () => {
+      let networkType = 'Unknown';
+      try {
+        const netState = await Network.getNetworkStateAsync();
+        networkType = netState.type || 'Unknown';
+      } catch (err) {}
+
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+      const locale = Intl.DateTimeFormat().resolvedOptions().locale || 'en-IN';
+      const country = locale.split('-')[1]?.toUpperCase() || 'IN';
+
+      console.log("=========================================");
+      console.log("📱 DEVICE DETAILS DETECTED ON STARTUP:");
+      console.log("👉 Device Name:  ", Device.deviceName);
+      console.log("👉 Brand:        ", Device.brand);
+      console.log("👉 Model Name:   ", Device.modelName);
+      console.log("👉 OS Name:      ", Device.osName);
+      console.log("👉 OS Version:   ", Device.osVersion);
+      console.log("👉 Timezone:     ", timezone);
+      console.log("👉 Country Code: ", country);
+      console.log("👉 Network Type: ", networkType);
+      console.log("👉 Device Type:  ", Device.deviceType);
+      console.log("👉 Is Device?:   ", Device.isDevice);
+      console.log("=========================================");
+    };
+
+    logTelemetry();
+
     const minWait  = new Promise<void>((res) => setTimeout(res, MIN_SPLASH_MS));
     const apiFetch = fetchProjects()
       .then((projects) => {
@@ -111,8 +143,9 @@ export default function RootLayout() {
       .catch(() => null);
     const session = hydrateSession().catch(() => null);
     const favorites = hydrateFavorites().catch(() => null);
+    const recentViews = hydrateRecentViews().catch(() => null);
 
-    Promise.all([minWait, apiFetch, session, favorites]).then(() => {
+    Promise.all([minWait, apiFetch, session, favorites, recentViews]).then(() => {
       setSplashDone(true);
     });
   }, []);
@@ -149,9 +182,10 @@ export default function RootLayout() {
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="ForgetPassword/index" options={{ headerShown: false }} />
         <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+        <Stack.Screen name="latest_reminders/index" options={{ headerShown: false }} />
         <Stack.Screen name= "AllCities/index"    options={{ headerShown: false }} />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="light" translucent />
     </ThemeProvider>
   );
 }

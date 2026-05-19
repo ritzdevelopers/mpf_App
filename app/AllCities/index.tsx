@@ -173,30 +173,6 @@ export default function AllCities() {
               Hand-picked growth corridors and high-demand pockets — your next
               home starts where the market is strongest.
             </Text>
-
-            <View style={HERO.statsRow}>
-              <View style={HERO.stat}>
-                <View style={HERO.statIcon}>
-                  <Ionicons name="map" size={16} color="#fbbf24" />
-                </View>
-                <Text style={HERO.statValue}>{String(ALL_CITIES_COUNT)}</Text>
-                <Text style={HERO.statLabel}>Cities</Text>
-              </View>
-              <View style={HERO.stat}>
-                <View style={HERO.statIcon}>
-                  <Ionicons name="home" size={16} color="#fbbf24" />
-                </View>
-                <Text style={HERO.statValue}>2.4k+</Text>
-                <Text style={HERO.statLabel}>Listings</Text>
-              </View>
-              <View style={HERO.stat}>
-                <View style={HERO.statIcon}>
-                  <Ionicons name="globe-outline" size={16} color="#fbbf24" />
-                </View>
-                <Text style={HERO.statValue}>All</Text>
-                <Text style={HERO.statLabel}>India</Text>
-              </View>
-            </View>
           </LinearGradient>
         </View>
 

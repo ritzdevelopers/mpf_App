@@ -14,6 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { styles } from "./sidebarUI";
 
+import { useUser } from "@/utils/authStore";
+
 const { width } = Dimensions.get("window");
 
 export default function SidebarMenu({
@@ -21,6 +23,7 @@ export default function SidebarMenu({
   onClose,
 }: any) {
   const slideAnim = useRef(new Animated.Value(-width)).current;
+  const user = useUser();
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -58,6 +61,10 @@ export default function SidebarMenu({
     },
   ];
 
+  const userInitial = user
+    ? (user.name || user.email || "U").trim().charAt(0).toUpperCase()
+    : "G";
+
   return (
     <Modal transparent visible={visible} animationType="none">
       <View className={styles.overlay}>
@@ -79,18 +86,20 @@ export default function SidebarMenu({
           <ScrollView showsVerticalScrollIndicator={false}>
             
             {/* Top Profile Section */}
-            <View className={styles.topBox}>
+            <View className="pb-6 border-b border-slate-200 flex-row items-center">
               <View className={styles.avatar}>
-                <Text className={styles.avatarText}>S</Text>
+                <Text className={styles.avatarText}>{userInitial}</Text>
               </View>
 
-              <Text className={styles.name}>
-                Simranpreet Singh
-              </Text>
+              <View className="ml-4 flex-1 justify-center">
+                <Text className="text-lg font-extrabold text-slate-900" numberOfLines={1}>
+                  {user ? user.name : "Guest User"}
+                </Text>
 
-              <Text className={styles.email}>
-                algoknightcode@gmail.com
-              </Text>
+                <Text className="text-xs text-slate-500 mt-1" numberOfLines={1}>
+                  {user ? user.email : "Log in to save properties"}
+                </Text>
+              </View>
             </View>
 
             {/* Menu Items */}

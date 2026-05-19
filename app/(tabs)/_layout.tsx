@@ -66,9 +66,8 @@ export default function TabLayout() {
         freezeOnBlur: false,
 
         tabBarStyle: {
-          height: 74,
           paddingTop: 8,
-          paddingBottom: 10,
+          paddingBottom: 28,
           backgroundColor: "#ffffff",
           borderTopWidth: 1,
           borderTopColor: "#eeeeee",
@@ -90,15 +89,20 @@ export default function TabLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
-        name="sell"
+        name="recent"
         options={{
-          title: "Sell/Rent",
+          title: "Recent",
           tabBarIcon: ({ color, focused }) => (
-            <AnimatedTabIcon size={28} name="plus.circle" color={color} focused={focused} />
+            <AnimatedTabIcon
+              size={26}
+              name="clock.fill"
+              color={color}
+              focused={focused}
+            />
           ),
         }}
+
       />
 
       <Tabs.Screen
@@ -118,6 +122,12 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <AnimatedTabIcon size={26} name="person" color={color} focused={focused} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="sell"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

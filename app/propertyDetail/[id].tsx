@@ -3,6 +3,7 @@ import { View, ActivityIndicator, Text } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import PropertyDetail from "@/components/property/PropertyDetail";
+import { addRecentView } from "@/utils/recentViewsStore";
 import {
   fetchProjects,
   getImageUrl,
@@ -33,6 +34,12 @@ export default function PropertyDetailsScreen() {
   
   // 6. Explicit truthy check: Make sure cachedData is actually an array with items
   const [loading, setLoading] = useState(!(cachedData && cachedData.length > 0));
+
+  useEffect(() => {
+    if (project?.id) {
+      addRecentView(Number(project.id));
+    }
+  }, [project?.id]);
 
   useEffect(() => {
     const hasCache = cachedData && cachedData.length > 0;

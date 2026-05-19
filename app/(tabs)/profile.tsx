@@ -8,20 +8,19 @@ import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View }
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { signOut, useUser } from "../../utils/authStore";
+import ContactFormModal from "@/components/property/ContactFormModal";
 
 const menuItems = [
-  { icon: "heart-outline", label: "Liked Properties", value: "39", color: "#ef4444" },
-  { icon: "time-outline", label: "Recently Viewed", value: "248", color: "#2563eb" },
-  { icon: "bookmark-outline", label: "Saved Projects", value: "17", color: "#d89b38" },
-  { icon: "notifications-outline", label: "Alerts & Reminders", value: "5", color: "#9333ea" },
-  { icon: "document-text-outline", label: "My Enquiries", value: "12", color: "#16a34a" },
+  { icon: "heart-outline", label: "Liked Properties", color: "#ef4444", action: "liked" },
+  { icon: "time-outline", label: "Recently Viewed", color: "#2563eb", action: "recent" },
+  { icon: "document-text-outline", label: "My Enquiries", color: "#16a34a", action: "enquiries" },
 ];
 
 const settingsItems = [
-  { icon: "person-outline", label: "Edit Profile" },
-  { icon: "shield-checkmark-outline", label: "Privacy & Security" },
-  { icon: "help-circle-outline", label: "Help & Support" },
-  { icon: "information-circle-outline", label: "About App" },
+  { icon: "person-outline", label: "Edit Profile", route: "" },
+  { icon: "shield-checkmark-outline", label: "Privacy & Security", route: "/settings/privacy" },
+  { icon: "help-circle-outline", label: "Help & Support", route: "" },
+  { icon: "information-circle-outline", label: "About App", route: "/settings/about" },
 ];
 
 export default function ProfilePage() {
@@ -32,18 +31,130 @@ export default function ProfilePage() {
 /* ─────────────────────────────────────────────
    LOGGED-IN VIEW
 ───────────────────────────────────────────── */
+import { Modal, Animated, Pressable } from "react-native";
+
+function CustomSignOutModal({ visible, onCancel, onConfirm }: { visible: boolean; onCancel: () => void; onConfirm: () => void }) {
+  const animValue = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    if (visible) {
+      animValue.setValue(0); // Reset spring start position to bottom every time
+      Animated.spring(animValue, {
+        toValue: 1,
+        tension: 65,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
+  const handleDismiss = (callback: () => void) => {
+    Animated.timing(animValue, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => {
+      callback();
+    });
+  };
+
+  const backdropOpacity = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.45],
+  });
+
+  const translateY = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [450, 0],
+  });
+
+  return (
+    <Modal transparent visible={visible} animationType="none" onRequestClose={() => handleDismiss(onCancel)}>
+      <View style={{ flex: 1, justifyContent: "flex-end" }}>
+        <Pressable onPress={() => handleDismiss(onCancel)} style={{ ...StyleSheet.absoluteFillObject }}>
+          <Animated.View style={{ flex: 1, backgroundColor: "#000", opacity: backdropOpacity }} />
+        </Pressable>
+
+        <Animated.View
+          style={{
+            backgroundColor: "#fff",
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
+            paddingTop: 10,
+            paddingHorizontal: 24,
+            paddingBottom: Platform.OS === "ios" ? 44 : 28,
+            transform: [{ translateY }],
+          }}
+        >
+          {/* Top handle bar */}
+          <View style={{ width: 42, height: 5, backgroundColor: "#e2e8f0", borderRadius: 99, alignSelf: "center", marginBottom: 24 }} />
+
+          {/* Exit icon circle */}
+          <View style={{
+            width: 58,
+            height: 58,
+            borderRadius: 20,
+            backgroundColor: "#FEF2F2",
+            alignItems: "center",
+            justifyContent: "center",
+            alignSelf: "center",
+            marginBottom: 16,
+          }}>
+            <Ionicons name="log-out" size={24} color="#ef4444" />
+          </View>
+
+          {/* Header */}
+          <Text style={{ fontSize: 20, fontWeight: "800", color: "#0f172a", textAlign: "center", marginBottom: 24 }}>
+            Sign Out?
+          </Text>
+
+          {/* CTA buttons */}
+          <View style={{ gap: 12 }}>
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => handleDismiss(onConfirm)}
+              style={{
+                backgroundColor: "#EF4444",
+                borderRadius: 18,
+                paddingVertical: 16,
+                alignItems: "center",
+                shadowColor: "#EF4444",
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.15,
+                shadowRadius: 10,
+                elevation: 4,
+              }}
+            >
+              <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800" }}>Yes, Sign Out</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => handleDismiss(onCancel)}
+              style={{
+                backgroundColor: "#F1F5F9",
+                borderRadius: 18,
+                paddingVertical: 16,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#475569", fontSize: 15, fontWeight: "700" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
 function LoggedInView({ user }: { user: { name: string; email: string } }) {
   const initial = (user.name || user.email || "U").trim().charAt(0).toUpperCase();
+  const [showSignOut, setShowSignOut] = React.useState(false);
+  const [showEnquiry, setShowEnquiry] = React.useState(false);
 
-  const confirmSignOut = () => {
-    Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Sign Out", style: "destructive", onPress: () => void signOut() },
-      ]
-    );
+  const handleSignOut = () => {
+    setShowSignOut(false);
+    signOut();
   };
 
   return (
@@ -75,60 +186,16 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
             </View>
 
             <TouchableOpacity
-              onPress={confirmSignOut}
+              onPress={() => setShowSignOut(true)}
               style={styles.iconBtn}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons name="log-out-outline" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
-
-          {/* Smart Match */}
-          <View style={styles.smartMatch}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Smart Match Score</Text>
-              <Text style={{ color: "#cbd5e1", fontSize: 11, marginTop: 2 }}>Based on your searches & likes</Text>
-              <View style={styles.progressBg}>
-                <View style={[styles.progressFill, { width: "91%" }]} />
-              </View>
-            </View>
-            <Text style={{ color: "#f5c97a", fontSize: 36, fontWeight: "800" }}>91%</Text>
-          </View>
         </View>
 
-        {/* ── FLOATING STATS ── */}
-        <View style={{ paddingHorizontal: 16, marginTop: -22 }}>
-          <View style={[styles.glass, { flexDirection: "row", gap: 8 }]}>
-            {[
-              { val: "248", label: "Seen", color: "#2563eb" },
-              { val: "39", label: "Liked", color: "#ef4444" },
-              { val: "17", label: "Saved", color: "#16a34a" },
-            ].map((s, i) => (
-              <View key={i} style={styles.statCard}>
-                <Text style={{ fontSize: 22, fontWeight: "800", color: s.color }}>{s.val}</Text>
-                <Text style={{ fontSize: 11, color: "#64748b", marginTop: 3, fontWeight: "600" }}>{s.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* ── BUYER INSIGHTS ── */}
-          <Text style={styles.sectionTitle}>Buyer Insights</Text>
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <View style={[styles.glass, { flex: 1 }]}>
-              <View style={[styles.insightIcon, { backgroundColor: "rgba(37,99,235,0.12)" }]}>
-                <MaterialCommunityIcons name="home-city-outline" size={22} color="#2563eb" />
-              </View>
-              <Text style={styles.insightLabel}>Preferred City</Text>
-              <Text style={styles.insightValue}>Noida</Text>
-            </View>
-            <View style={[styles.glass, { flex: 1 }]}>
-              <View style={[styles.insightIcon, { backgroundColor: "rgba(22,163,74,0.12)" }]}>
-                <Ionicons name="cash-outline" size={22} color="#16a34a" />
-              </View>
-              <Text style={styles.insightLabel}>Avg Budget</Text>
-              <Text style={styles.insightValue}>₹1.4 Cr</Text>
-            </View>
-          </View>
+        <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
 
           {/* ── ACTIVITY ── */}
           <Text style={styles.sectionTitle}>My Activity</Text>
@@ -136,6 +203,15 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
             {menuItems.map((item, i) => (
               <TouchableOpacity
                 key={i}
+                onPress={() => {
+                  if (item.action === "liked") {
+                    router.push("/(tabs)/saved" as any);
+                  } else if (item.action === "recent") {
+                    router.push("/(tabs)/recent" as any);
+                  } else if (item.action === "enquiries") {
+                    setShowEnquiry(true);
+                  }
+                }}
                 style={[styles.row, i < menuItems.length - 1 && styles.rowDivider]}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -144,34 +220,12 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
                   </View>
                   <Text style={{ fontSize: 14, fontWeight: "600", color: "#1e293b" }}>{item.label}</Text>
                 </View>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <View style={styles.valueChip}>
-                    <Text style={{ fontWeight: "700", fontSize: 12, color: "#475569" }}>{item.value}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
-                </View>
+                <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
               </TouchableOpacity>
             ))}
           </View>
 
-          {/* ── PREMIUM CTA ── */}
-          <View style={styles.premiumCard}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <View style={{ flex: 1, marginRight: 16 }}>
-                <View style={styles.upgradeChip}>
-                  <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700", letterSpacing: 0.5 }}>UPGRADE</Text>
-                </View>
-                <Text style={{ color: "#fff", fontSize: 17, fontWeight: "800" }}>Supercharge Your Search</Text>
-                <Text style={{ color: "#cbd5e1", fontSize: 12, marginTop: 6, lineHeight: 18 }}>
-                  AI recommendations, instant alerts & priority access to new launches.
-                </Text>
-              </View>
-              <Ionicons name="sparkles" size={36} color="#f5c97a" />
-            </View>
-            <TouchableOpacity style={styles.premiumCta}>
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>Explore Premium</Text>
-            </TouchableOpacity>
-          </View>
+
 
           {/* ── SETTINGS ── */}
           <Text style={styles.sectionTitle}>Settings</Text>
@@ -179,6 +233,15 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
             {settingsItems.map((item, i) => (
               <TouchableOpacity
                 key={i}
+                onPress={() => {
+                  if (item.route) {
+                    router.push(item.route as any);
+                  } else if (item.label === "Help & Support") {
+                    setShowEnquiry(true);
+                  } else if (item.label === "Edit Profile") {
+                    Alert.alert("Edit Profile", "Profile editing feature will be available in the next build.");
+                  }
+                }}
                 style={[styles.row, i < settingsItems.length - 1 && styles.rowDivider]}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -193,7 +256,7 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
           </View>
 
           {/* ── SIGN OUT ── */}
-          <TouchableOpacity onPress={confirmSignOut} style={styles.signOutBtn}>
+          <TouchableOpacity onPress={() => setShowSignOut(true)} style={styles.signOutBtn}>
             <Ionicons name="log-out-outline" size={18} color="#ef4444" style={{ marginRight: 8 }} />
             <Text style={{ color: "#ef4444", fontSize: 14, fontWeight: "700" }}>Sign Out</Text>
           </TouchableOpacity>
@@ -201,6 +264,18 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
           <View style={{ height: 40 }} />
         </View>
       </ScrollView>
+
+      <CustomSignOutModal
+        visible={showSignOut}
+        onCancel={() => setShowSignOut(false)}
+        onConfirm={handleSignOut}
+      />
+
+      <ContactFormModal
+        visible={showEnquiry}
+        onClose={() => setShowEnquiry(false)}
+        pageName="home page"
+      />
     </SafeAreaView>
   );
 }
@@ -216,68 +291,45 @@ function GuestView() {
       <View pointerEvents="none" style={styles.blobGold} />
       <View pointerEvents="none" style={styles.blobBlue} />
 
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ marginBottom: 28 }}>
-          <Text style={{ fontSize: 28, fontWeight: "800", color: "#0f172a" }}>Profile</Text>
-          <Text style={{ fontSize: 14, color: "#64748b", marginTop: 4 }}>
-            Sign in to unlock your full experience
-          </Text>
+      <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}>
+        {/* Header */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 32, fontWeight: "800", color: "#0f172a" }}>Profile</Text>
         </View>
 
-        {/* ── HERO AUTH CARD ── */}
-        <View style={[styles.glass, { padding: 0, overflow: "hidden", borderRadius: 28 }]}>
-          <View style={styles.authHeader}>
-            <View style={styles.authAvatar}>
-              <Ionicons name="person" size={38} color="#fff" />
+        {/* Vertically centered container for the Login / Register card */}
+        <View style={{ flex: 1, justifyContent: "center", paddingBottom: 60 }}>
+          {/* ── HERO AUTH CARD ── */}
+          <View style={[styles.glass, { padding: 0, overflow: "hidden", borderRadius: 28 }]}>
+            <View style={styles.authHeader}>
+              <View style={styles.authAvatar}>
+                <Ionicons name="person" size={38} color="#fff" />
+              </View>
+              <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>Join RealEstate</Text>
+              <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 6, textAlign: "center", lineHeight: 20 }}>
+                Login and access millions of properties{"\n"}with smart alerts & saved searches
+              </Text>
             </View>
-            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>Join RealEstate</Text>
-            <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 6, textAlign: "center", lineHeight: 20 }}>
-              Login and access millions of properties{"\n"}with smart alerts & saved searches
-            </Text>
-          </View>
 
-          <View style={{ padding: 20, gap: 12 }}>
-            <TouchableOpacity
-              onPress={() => router.push("/auth" as any)}
-              activeOpacity={0.85}
-              style={styles.primaryBtn}
-            >
-              <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800" }}>Login / Register</Text>
-            </TouchableOpacity>
+            <View style={{ padding: 20, gap: 12 }}>
+              <TouchableOpacity
+                onPress={() => router.push("/auth" as any)}
+                activeOpacity={0.85}
+                style={styles.primaryBtn}
+              >
+                <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800" }}>Login / Register</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => router.push("/auth" as any)}
-              style={styles.secondaryBtn}
-            >
-              <Text style={{ color: "#4361EE", fontSize: 15, fontWeight: "700" }}>Continue as Guest</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/auth" as any)}
+                style={styles.secondaryBtn}
+              >
+                <Text style={{ color: "#4361EE", fontSize: 15, fontWeight: "700" }}>Continue as Guest</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-
-        {/* ── FEATURE HIGHLIGHTS ── */}
-        <Text style={[styles.sectionTitle, { marginTop: 28 }]}>Why Sign In?</Text>
-        <View style={{ gap: 10 }}>
-          {[
-            { icon: "heart-outline", color: "#ef4444", bg: "rgba(239,68,68,0.12)", title: "Save & Shortlist", desc: "Bookmark properties you love" },
-            { icon: "notifications-outline", color: "#9333ea", bg: "rgba(147,51,234,0.12)", title: "Smart Alerts", desc: "Get notified on new launches & price drops" },
-            { icon: "trending-up-outline", color: "#2563eb", bg: "rgba(37,99,235,0.12)", title: "Price Insights", desc: "Track market trends in your locality" },
-            { icon: "document-text-outline", color: "#16a34a", bg: "rgba(22,163,74,0.12)", title: "My Enquiries", desc: "Track all your property inquiries" },
-          ].map((f, i) => (
-            <View key={i} style={[styles.glass, { flexDirection: "row", alignItems: "center", paddingVertical: 14 }]}>
-              <View style={{ backgroundColor: f.bg, borderRadius: 14, padding: 10, marginRight: 14 }}>
-                <Ionicons name={f.icon as any} size={22} color={f.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14, fontWeight: "700", color: "#0f172a" }}>{f.title}</Text>
-                <Text style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{f.desc}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
