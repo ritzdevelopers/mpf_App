@@ -66,7 +66,7 @@ export default function TabLayout() {
         freezeOnBlur: false,
 
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 88 : 66,
+          height: Platform.OS === 'ios' ? 88 : 70,
           paddingTop: 8,
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           backgroundColor: "#ffffff",

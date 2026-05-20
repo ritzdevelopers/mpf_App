@@ -1,4 +1,5 @@
 "use no memo";
+import { ALL_CITIES_CARDS } from "@/data/allCitiesCards";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -13,7 +14,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./AllCitiesUI";
-import { ALL_CITIES_CARDS, ALL_CITIES_COUNT } from "@/data/allCitiesCards";
 
 const HERO = StyleSheet.create({
   shell: {
@@ -134,7 +134,7 @@ export default function AllCities() {
   return (
     <SafeAreaView edges={["top"]} className={styles.safe}>
       {/* ── Top bar ── */}
-      <View className={styles.headerRow}>
+      <View className={styles.headerRow} style={{ position: "relative" }}>
         <TouchableOpacity
           onPress={() => router.back()}
           className={styles.backBtn}
@@ -142,8 +142,13 @@ export default function AllCities() {
         >
           <Ionicons name="chevron-back" size={20} color="#0f172a" />
         </TouchableOpacity>
-        <Text className={styles.title}>All Cities</Text>
-        <View className={styles.backBtn} />
+        <Text
+          className={styles.title}
+          style={{ position: "absolute", left: 0, right: 0, textAlign: "center" }}
+          pointerEvents="none"
+        >
+          All Cities
+        </Text>
       </View>
 
       <ScrollView
@@ -193,15 +198,10 @@ export default function AllCities() {
             >
               <View className={styles.cardInner}>
                 <Image
-                  source={{ uri: city.image }}
+                  source={city.image}
                   className={styles.image}
                   resizeMode="cover"
                 />
-
-                {/* Tag pill */}
-                <View className={styles.tagPill}>
-                  <Text className={styles.tagText}>{city.tag}</Text>
-                </View>
 
                 <View className={styles.glassFooter}>
                   <Text className={styles.city}>{city.name}</Text>

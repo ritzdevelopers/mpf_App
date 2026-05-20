@@ -1,5 +1,5 @@
 "use no memo";
-import { getCityImageUrl } from "@/data/allCitiesCards";
+import { getCityImage } from "@/data/allCitiesCards";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -69,15 +69,10 @@ export default function CityProperty() {
           >
             <View className={styles.cardInner}>
               <Image
-                source={{ uri: getCityImageUrl(item.name) ?? "" }}
+                source={getCityImage(item.name)}
                 className={styles.image}
                 resizeMode="cover"
               />
-
-              {/* Tag pill */}
-              <View className={styles.tagPill}>
-                <Text className={styles.tagText}>{item.tag}</Text>
-              </View>
 
               <View className={styles.glassFooter}>
                 <Text className={styles.city}>{item.name}</Text>

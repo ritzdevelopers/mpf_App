@@ -17,6 +17,101 @@ import {
     View,
 } from "react-native";
 
+/** Maps OS-returned place names → app city names (case-insensitive prefix/includes match) */
+const CITY_ALIASES: Record<string, string> = {
+    // Delhi variants
+    "new delhi": "Delhi",
+    "delhi": "Delhi",
+    "nct": "Delhi",
+    "national capital territory": "Delhi",
+    // Bangalore variants
+    "bengaluru": "Bangalore",
+    "bangalore": "Bangalore",
+    // Noida variants
+    "noida": "Noida",
+    "gautam buddh nagar": "Noida",
+    "gautam buddha nagar": "Noida",
+    // Greater Noida
+    "greater noida": "Greater Noida",
+    // Gurgaon
+    "gurgaon": "Gurugram",
+    "gurugram": "Gurugram",
+    // Mumbai variants
+    "mumbai": "Mumbai",
+    "bombay": "Mumbai",
+    "navi mumbai": "Mumbai",
+    "thane": "Mumbai",
+    // Hyderabad
+    "hyderabad": "Hyderabad",
+    "secunderabad": "Hyderabad",
+    "cyberabad": "Hyderabad",
+    // Pune
+    "pune": "Pune",
+    "pimpri": "Pune",
+    "chinchwad": "Pune",
+    // Chennai variants
+    "chennai": "Chennai",
+    "madras": "Chennai",
+    // Ghaziabad
+    "ghaziabad": "Ghaziabad",
+    // Faridabad
+    "faridabad": "Faridabad",
+    // Chandigarh
+    "chandigarh": "Chandigarh",
+    // Jaipur
+    "jaipur": "Jaipur",
+    // Lucknow
+    "lucknow": "Lucknow",
+    // Agra
+    "agra": "Agra",
+    // Goa
+    "goa": "Goa",
+    "panaji": "Goa",
+    // Dehradun
+    "dehradun": "Dehradun",
+    // Kochi
+    "kochi": "Kochi",
+    "cochin": "Kochi",
+    // Thiruvananthapuram
+    "thiruvananthapuram": "Thiruvananthapuram",
+    "trivandrum": "Thiruvananthapuram",
+    // Ludhiana
+    "ludhiana": "Ludhiana",
+    // Mohali
+    "mohali": "Mohali",
+    "sahibzada ajit singh nagar": "Mohali",
+    // Indore
+    "indore": "Indore",
+    // Karnal
+    "karnal": "Karnal",
+    // Panipat
+    "panipat": "Panipat",
+    // Sonipat
+    "sonipat": "Sonipat",
+    // Bareilly
+    "bareilly": "Bareilly",
+    // Vrindavan
+    "vrindavan": "Vrindavan",
+    "mathura": "Vrindavan",
+    // Noida Extension
+    "noida extension": "Noida extension",
+    "greater noida west": "Noida extension",
+};
+
+/** Returns the best matching app city name for a raw OS location string */
+function normalizeCity(raw: string): string | null {
+    const lower = raw.toLowerCase().trim();
+    // Exact or alias match
+    if (CITY_ALIASES[lower]) return CITY_ALIASES[lower];
+    // Partial match — raw contains a known alias keyword
+    for (const [alias, cityName] of Object.entries(CITY_ALIASES)) {
+        if (lower.includes(alias) || alias.includes(lower)) {
+            return cityName;
+        }
+    }
+    return null;
+}
+
 export default function ExploreNearby() {
     const cached = getProjectsCache();
 
@@ -45,12 +140,21 @@ export default function ExploreNearby() {
                 longitude,
             });
 
-            const detectedCity =
-                address[0]?.city ||
-                address[0]?.district ||
-                address[0]?.region;
+            // Try each available field and normalize to a known app city
+            const candidates = [
+                address[0]?.city,
+                address[0]?.subregion,
+                address[0]?.district,
+                address[0]?.region,
+            ].filter(Boolean) as string[];
 
-            setCity(detectedCity || "Nearby");
+            let matched: string | null = null;
+            for (const candidate of candidates) {
+                matched = normalizeCity(candidate);
+                if (matched) break;
+            }
+
+            setCity(matched || candidates[0] || "Nearby");
 
         } catch (err) {
             console.log(err);

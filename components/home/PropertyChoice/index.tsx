@@ -34,8 +34,8 @@ function SectionBlock({ title, subtitle, data, counts, isFA = false, onSelect }:
           <TouchableOpacity
             key={item.id}
             onPress={() => onSelect && onSelect(item)}
-            className="mr-3 w-32 bg-white rounded-2xl p-4 items-center border border-slate-100"
-            style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
+            className="mr-3 bg-white rounded-2xl p-4 items-center border border-slate-100"
+            style={{ width: 88, shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
           >
             <View className="h-12 w-12 rounded-2xl bg-blue-50 items-center justify-center mb-2">
               {isFA
@@ -43,9 +43,13 @@ function SectionBlock({ title, subtitle, data, counts, isFA = false, onSelect }:
                 : <Ionicons name={item.icon} size={24} color="#2563eb" />
               }
             </View>
-            <Text className="text-xs font-bold text-slate-900 text-center">{item.title}</Text>
-            <Text className="text-[10px] text-slate-400 mt-0.5">
-              {(counts[item.title] || "+")} Properties
+            <Text
+              className="text-xs font-bold text-slate-900 text-center"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+            >
+              {item.title}
             </Text>
           </TouchableOpacity>
         ))}
