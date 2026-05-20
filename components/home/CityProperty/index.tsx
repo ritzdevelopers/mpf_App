@@ -2,8 +2,8 @@
 import { getCityImage } from "@/data/allCitiesCards";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useRef } from "react";
+import { Animated, Image, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./CityPropertyUI";
 
 const HOME_CITIES: { name: string; homes: string; tag: string }[] = [
@@ -15,15 +15,7 @@ const HOME_CITIES: { name: string; homes: string; tag: string }[] = [
 
 export default function CityProperty() {
   const router = useRouter();
-  const [liked, setLiked] = useState<Set<number>>(new Set());
-
-  const toggle = (id: number) => {
-    setLiked((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
+  const seeAllScale = useRef(new Animated.Value(1)).current;
 
   return (
     <View className={styles.container}>
@@ -42,13 +34,16 @@ export default function CityProperty() {
         </View>
 
         <TouchableOpacity
-          className={styles.seeAllBtn}
+          activeOpacity={1}
           onPress={() => router.push("/AllCities" as any)}
-          activeOpacity={0.85}
+          onPressIn={() => Animated.spring(seeAllScale, { toValue: 0.82, useNativeDriver: true, speed: 40, bounciness: 10 }).start()}
+          onPressOut={() => Animated.spring(seeAllScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 12 }).start()}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <Text className={styles.seeAllText}>See all</Text>
-          <Ionicons name="arrow-forward" size={12} color="#b45309" />
+          <Animated.View style={{ transform: [{ scale: seeAllScale }], flexDirection: "row", alignItems: "center" }}>
+            <Text className={styles.seeAllText}>See all</Text>
+            <Ionicons name="chevron-forward" size={12} color="#b45309" />
+          </Animated.View>
         </TouchableOpacity>
       </View>
 

@@ -16,11 +16,13 @@ import React, {
 } from "react";
 
 import {
+  Animated,
   Dimensions,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { Easing } from "react-native-reanimated";
 
@@ -128,6 +130,41 @@ const BuilderCard = memo(
 
 BuilderCard.displayName = "BuilderCard";
 
+function SeeAllButton() {
+  const scale = React.useRef(new Animated.Value(1)).current;
+  const onPressIn = () =>
+    Animated.spring(scale, { toValue: 0.92, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
+  const onPressOut = () =>
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }).start();
+
+  return (
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={() => router.push("/listings" as any)}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+    >
+      <Animated.View
+        style={{
+          transform: [{ scale }],
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "#fff",
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: "#fed7aa",
+          gap: 2,
+        }}
+      >
+        <Text style={{ fontSize: 12, fontWeight: "700", color: "#d89b38" }}>See All</Text>
+        <Ionicons name="chevron-forward" size={14} color="#d89b38" />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
 export default function PopularBuilders() {
   const [builders, setBuilders] = useState<Builder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,14 +228,7 @@ export default function PopularBuilders() {
           </View>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => router.push("/listings" as any)}
-          className="bg-blue-50 px-4 py-2 rounded-full flex-row items-center"
-        >
-          <Text className="text-xs font-semibold text-blue-600">See all</Text>
-          <Text className="ml-1 text-blue-400">→</Text>
-        </TouchableOpacity>
+        <SeeAllButton />
       </View>
 
       {loading ? (

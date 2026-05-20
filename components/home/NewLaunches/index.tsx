@@ -1,14 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchProjects,
   getImageUrl,
@@ -48,6 +49,7 @@ export default function NewLaunches() {
   const favorites = useFavorites();
 
   const openListings = useCallback(openNewLaunchesListings, []);
+  const viewAllScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const cached = getProjectsCache();
@@ -89,13 +91,16 @@ export default function NewLaunches() {
         </View>
 
         <TouchableOpacity
-          className={styles.viewAllBtn}
-          activeOpacity={0.85}
+          activeOpacity={1}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           onPress={openListings}
+          onPressIn={() => Animated.spring(viewAllScale, { toValue: 0.82, useNativeDriver: true, speed: 40, bounciness: 10 }).start()}
+          onPressOut={() => Animated.spring(viewAllScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 12 }).start()}
         >
-          <Text className={styles.viewAllText}>View all</Text>
-          <Ionicons name="arrow-forward" size={12} color="#059669" />
+          <Animated.View style={{ transform: [{ scale: viewAllScale }], flexDirection: "row", alignItems: "center" }}>
+            <Text className={styles.viewAllText}>View all</Text>
+            <Ionicons name="chevron-forward" size={12} color="#059669" />
+          </Animated.View>
         </TouchableOpacity>
       </View>
 
