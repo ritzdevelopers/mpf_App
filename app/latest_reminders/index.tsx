@@ -1,18 +1,18 @@
+import { fetchProjects, getBuilderLogoUrl, getProjectsCache, type Project } from "@/utils/api";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter, Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
   Image,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchProjects, getImageUrl, getProjectsCache, getBuilderLogoUrl, type Project } from "@/utils/api";
 
 const getNotificationTime = (index: number) => {
   const times = [
@@ -43,15 +43,15 @@ const getNotificationTime = (index: number) => {
 const getPropertyTypeColor = (typeName: string) => {
   const name = typeName?.toLowerCase() || "";
   if (name.includes("commercial") || name.includes("office") || name.includes("shop")) {
-    return { bg: "bg-orange-50", icon: "#d89b38", dot: "bg-[#d89b38]", name: "business" };
+    return { bg: "bg-amber-50 border border-amber-100/60", icon: "#d97706", name: "business" };
   }
   if (name.includes("villa") || name.includes("penthouse") || name.includes("row")) {
-    return { bg: "bg-purple-50", icon: "#8b5cf6", dot: "bg-purple-500", name: "home" };
+    return { bg: "bg-violet-50 border border-violet-100/60", icon: "#8b5cf6", name: "home" };
   }
   if (name.includes("plot") || name.includes("land")) {
-    return { bg: "bg-green-50", icon: "#22c55e", dot: "bg-green-500", name: "leaf" };
+    return { bg: "bg-emerald-50 border border-emerald-100/60", icon: "#10b981", name: "map" };
   }
-  return { bg: "bg-blue-50", icon: "#3b82f6", dot: "bg-blue-500", name: "business-outline" };
+  return { bg: "bg-blue-50 border border-blue-100/60", icon: "#3b82f6", name: "business-outline" };
 };
 
 export default function LatestRemindersScreen() {
@@ -105,6 +105,7 @@ export default function LatestRemindersScreen() {
 
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-slate-50">
+      <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="dark-content" />
 
       {/* ── HEADER ── */}
@@ -118,7 +119,9 @@ export default function LatestRemindersScreen() {
         </TouchableOpacity>
         <View className="ml-3">
           <Text className="text-lg font-extrabold text-slate-900">Notifications</Text>
-          <Text className="text-[10px] text-slate-400 mt-0.5 font-semibold tracking-wide">Latest added premium properties</Text>
+          <Text className="text-[10px] text-slate-400 mt-0.5 font-semibold tracking-wide">
+            Latest added premium properties
+          </Text>
         </View>
       </View>
 
@@ -134,7 +137,9 @@ export default function LatestRemindersScreen() {
             <Ionicons name="notifications-off-outline" size={48} color="#cbd5e1" />
           </View>
           <Text className="text-lg font-extrabold text-slate-900">No updates yet</Text>
-          <Text className="text-sm text-slate-500 text-center mt-2 leading-5">We will notify you as soon as new properties are added.</Text>
+          <Text className="text-sm text-slate-500 text-center mt-2 leading-5">
+            We will notify you as soon as new properties are added.
+          </Text>
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -156,23 +161,25 @@ export default function LatestRemindersScreen() {
                 key={item.id}
                 activeOpacity={0.9}
                 onPress={() => handleNotificationPress(item)}
-                className={`flex-row px-4 py-3.5 border-b border-slate-100 ${isRead ? "bg-white" : "bg-blue-50/60"}`}
+                className={`flex-row px-4 py-3.5 border-b border-slate-100 ${
+                  isRead ? "bg-white" : "bg-blue-50/60"
+                }`}
               >
-                {/* Left side: Avatar */}
-                <View className="relative mr-3.5">
+                {/* Left side: Squircle Brand Icon/Avatar */}
+                <View className="mr-3.5">
                   {logoUri ? (
-                    <Image
-                      source={{ uri: logoUri }}
-                      className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200"
-                      resizeMode="contain"
-                    />
+                    <View className="w-12 h-12 rounded-[16px] bg-white border border-slate-100 shadow-sm items-center justify-center p-1 overflow-hidden">
+                      <Image
+                        source={{ uri: logoUri }}
+                        className="w-full h-full rounded-[12px]"
+                        resizeMode="contain"
+                      />
+                    </View>
                   ) : (
-                    <View className={`w-12 h-12 rounded-full items-center justify-center ${styleCfg.bg}`}>
-                      <Ionicons name={styleCfg.name as any} size={20} color={styleCfg.icon} />
+                    <View className={`w-12 h-12 rounded-[16px] items-center justify-center shadow-sm ${styleCfg.bg}`}>
+                      <Ionicons name={styleCfg.name as any} size={22} color={styleCfg.icon} />
                     </View>
                   )}
-                  {/* Property type badge dot */}
-                  <View className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white ${styleCfg.dot}`} />
                 </View>
 
                 {/* Middle: Content */}
@@ -181,25 +188,21 @@ export default function LatestRemindersScreen() {
                     <Text className="font-bold text-slate-900">{item.builderName || "Developer"}</Text>
                     {" launched a brand new project, "}
                     <Text className="font-bold text-slate-900">{item.projectName}</Text>
-                    {", offering premium "}
-                    <Text className="font-semibold text-blue-600">{item.propertyTypeName}</Text>
                     {" at "}
-                    <Text className="font-bold text-slate-900">{item.projectLocality}, {item.cityName}</Text>
-                    {" starting at "}
-                    <Text className="font-extrabold text-[#d89b38]">₹{item.projectPrice} Cr</Text>
+                    <Text className="font-bold text-slate-900">
+                      {item.projectLocality}, {item.cityName}
+                    </Text>
                     {"."}
                   </Text>
                   <Text className="text-[10px] text-slate-400 mt-1.5">{timeStr}</Text>
                 </View>
 
-                {/* Right side: Action dot / three dots */}
-                <View className="items-end ml-2 justify-between py-0.5">
-                  {isRead ? (
-                    <View className="w-2 h-2 mt-1.5" />
-                  ) : (
-                    <View className="w-2 h-2 rounded-full bg-[#d89b38] mt-1.5" />
-                  )}
-                  <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} className="mt-2">
+                {/* Right side: Action (ellipsis only, golden unread dots completely removed) */}
+                <View className="justify-center items-end ml-2">
+                  <TouchableOpacity
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    className="p-1"
+                  >
                     <Ionicons name="ellipsis-horizontal" size={16} color="#94a3b8" />
                   </TouchableOpacity>
                 </View>

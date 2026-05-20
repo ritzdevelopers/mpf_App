@@ -19,6 +19,7 @@ const MAPPING = {
   'plus.circle': 'add-circle-outline',
   'heart': 'favorite-outline',
   'person': 'person-outline',
+  'clock.fill': 'history',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
 } as IconMapping;

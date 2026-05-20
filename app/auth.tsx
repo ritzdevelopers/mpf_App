@@ -160,9 +160,9 @@ export default function AuthScreen() {
           <View style={{ alignItems: "center", marginBottom: 28 }}>
             <View style={{
               width: 72, height: 72, borderRadius: 22,
-              backgroundColor: "#4361EE",
+              backgroundColor: "#d89b38",
               alignItems: "center", justifyContent: "center",
-              shadowColor: "#4361EE", shadowOffset: { width: 0, height: 10 },
+              shadowColor: "#d89b38", shadowOffset: { width: 0, height: 10 },
               shadowOpacity: 0.35, shadowRadius: 20, elevation: 10,
               marginBottom: 14,
             }}>
@@ -182,7 +182,7 @@ export default function AuthScreen() {
             backgroundColor: "#fff",
             borderWidth: 1, borderColor: "#f1f5f9",
             padding: 22,
-            shadowColor: "#6366f1", shadowOffset: { width: 0, height: 12 },
+            shadowColor: "#d89b38", shadowOffset: { width: 0, height: 12 },
             shadowOpacity: 0.13, shadowRadius: 28, elevation: 6,
             transform: [{ translateX: shakeAnim }],
           }}>
@@ -273,7 +273,7 @@ export default function AuthScreen() {
                 style={{ alignSelf: "flex-end", marginBottom: 16, marginTop: -4 }}
                 hitSlop={{ top: 8, bottom: 8 }}
               >
-                <Text style={{ color: "#4361EE", fontSize: 13, fontWeight: "600" }}>
+                <Text style={{ color: "#d89b38", fontSize: 13, fontWeight: "600" }}>
                   Forgot Password?
                 </Text>
               </TouchableOpacity>
@@ -298,14 +298,14 @@ export default function AuthScreen() {
               disabled={submitting}
               activeOpacity={0.85}
               style={{
-                backgroundColor: submitting ? "#94a3b8" : "#4361EE",
+                backgroundColor: submitting ? "#94a3b8" : "#d89b38",
                 borderRadius: 16,
                 paddingVertical: 16,
                 alignItems: "center",
                 flexDirection: "row",
                 justifyContent: "center",
                 gap: 10,
-                shadowColor: "#4361EE", shadowOffset: { width: 0, height: 8 },
+                shadowColor: "#d89b38", shadowOffset: { width: 0, height: 8 },
                 shadowOpacity: 0.35, shadowRadius: 16, elevation: 6,
               }}
             >
@@ -327,7 +327,7 @@ export default function AuthScreen() {
               {tab === "login" ? "Don't have an account? " : "Already have an account? "}
             </Text>
             <TouchableOpacity onPress={() => switchTab(tab === "login" ? "signup" : "login")}>
-              <Text style={{ color: "#4361EE", fontSize: 14, fontWeight: "700" }}>
+              <Text style={{ color: "#d89b38", fontSize: 14, fontWeight: "700" }}>
                 {tab === "login" ? "Sign Up" : "Sign In"}
               </Text>
             </TouchableOpacity>
@@ -361,13 +361,13 @@ function Field({
       flexDirection: "row", alignItems: "center",
       backgroundColor: "#f8fafc",
       borderRadius: 14, borderWidth: 1.5,
-      borderColor: focused ? "#4361EE" : "#e2e8f0",
+      borderColor: focused ? "#d89b38" : "#e2e8f0",
       paddingHorizontal: 14, marginBottom: 14,
     }}>
       <Ionicons
         name={icon as any}
         size={18}
-        color={focused ? "#4361EE" : "#94a3b8"}
+        color={focused ? "#d89b38" : "#94a3b8"}
         style={{ marginRight: 10 }}
       />
       <TextInput

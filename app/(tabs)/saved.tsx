@@ -15,6 +15,8 @@ import {
   View,
 } from "react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 export default function SavedScreen() {
   const router = useRouter();
   const favoriteIds = useFavorites();
@@ -82,34 +84,58 @@ export default function SavedScreen() {
   const newLaunchCount = savedProjects.filter(p => p.projectStatusName === "New Launch").length;
 
   return (
-    <ScrollView
-      ref={scrollViewRef}
-      style={{ flex: 1, backgroundColor: "#f1f5f9" }}
-      showsVerticalScrollIndicator={false}
-    >
-
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#f1f5f9" }}>
       {/* ── HEADER ── */}
-      <View style={{ backgroundColor: "#fff", paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <View>
-            <Text style={{ fontSize: 28, fontWeight: "800", color: "#0f172a" }}>Shortlist</Text>
-            <Text style={{ fontSize: 13, color: "#94a3b8", marginTop: 3 }}>Your favourite saved properties</Text>
-          </View>
-          
-          <TouchableOpacity 
-            onPress={isSelecting ? cancelSelecting : startSelecting}
-            style={{ 
-              backgroundColor: isSelecting ? "#f1f5f9" : "#fff7ed", 
-              borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10, 
-              borderWidth: 1, borderColor: isSelecting ? "#e2e8f0" : "#fed7aa" 
-            }}
-          >
-            <Text style={{ fontWeight: "700", color: isSelecting ? "#64748b" : "#d89b38" }}>
-              {isSelecting ? "Cancel" : "Compare"}
-            </Text>
-          </TouchableOpacity>
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#fff",
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: "#e2e8f0"
+      }}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.back()}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            backgroundColor: "#f8fafc",
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 1,
+            borderColor: "#e2e8f0"
+          }}
+        >
+          <Ionicons name="chevron-back" size={22} color="#1e293b" />
+        </TouchableOpacity>
+        <View style={{ marginLeft: 12, flex: 1 }}>
+          <Text style={{ fontSize: 18, fontWeight: "800", color: "#0f172a" }}>Shortlist</Text>
+          <Text style={{ fontSize: 10, color: "#94a3b8", marginTop: 2, fontWeight: "600", letterSpacing: 0.3 }}>
+            Your favourite saved properties
+          </Text>
         </View>
+        <TouchableOpacity 
+          onPress={isSelecting ? cancelSelecting : startSelecting}
+          style={{ 
+            backgroundColor: isSelecting ? "#f1f5f9" : "#fff7ed", 
+            borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, 
+            borderWidth: 1, borderColor: isSelecting ? "#e2e8f0" : "#fed7aa" 
+          }}
+        >
+          <Text style={{ fontWeight: "700", color: isSelecting ? "#64748b" : "#d89b38", fontSize: 13 }}>
+            {isSelecting ? "Cancel" : "Compare"}
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      <ScrollView
+        ref={scrollViewRef}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
 
       <View style={{ paddingHorizontal: 16 }}>
 
@@ -278,6 +304,7 @@ export default function SavedScreen() {
 
       </View>
     </ScrollView>
+  </SafeAreaView>
   );
 }
 

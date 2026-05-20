@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import React from "react";
 import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { signOut, useUser } from "../../utils/authStore";
 import ContactFormModal from "@/components/property/ContactFormModal";
 
@@ -148,6 +148,7 @@ function CustomSignOutModal({ visible, onCancel, onConfirm }: { visible: boolean
 }
 
 function LoggedInView({ user }: { user: { name: string; email: string } }) {
+  const insets = useSafeAreaInsets();
   const initial = (user.name || user.email || "U").trim().charAt(0).toUpperCase();
   const [showSignOut, setShowSignOut] = React.useState(false);
   const [showEnquiry, setShowEnquiry] = React.useState(false);
@@ -158,7 +159,7 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
   };
 
   return (
-    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#eef2ff" }}>
+    <View style={{ flex: 1, backgroundColor: "#eef2ff" }}>
       {/* Decorative glass blobs */}
       <View pointerEvents="none" style={styles.blobIndigo} />
       <View pointerEvents="none" style={styles.blobGold} />
@@ -166,22 +167,19 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* ── HERO HEADER ── */}
-        <View style={styles.hero}>
+        <View style={[styles.hero, { paddingTop: insets.top + 20 }]}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
               <View style={styles.avatar}>
-                <Text style={{ fontSize: 28, fontWeight: "800", color: "#fff" }}>{initial}</Text>
+                <Ionicons name="person" size={32} color="#fff" />
               </View>
               <View style={{ marginLeft: 14, flex: 1 }}>
                 <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }} numberOfLines={1}>
                   {user.name}
                 </Text>
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, flexWrap: "wrap" }}>
-                  <View style={styles.premiumChip}>
-                    <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700", letterSpacing: 0.5 }}>PREMIUM</Text>
-                  </View>
-                  <Text style={{ color: "#cbd5e1", fontSize: 11 }} numberOfLines={1}>{user.email}</Text>
-                </View>
+                <Text style={{ color: "#cbd5e1", fontSize: 13, marginTop: 4 }} numberOfLines={1}>
+                  {user.email}
+                </Text>
               </View>
             </View>
 
@@ -276,7 +274,7 @@ function LoggedInView({ user }: { user: { name: string; email: string } }) {
         onClose={() => setShowEnquiry(false)}
         pageName="home page"
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -305,7 +303,7 @@ function GuestView() {
               <View style={styles.authAvatar}>
                 <Ionicons name="person" size={38} color="#fff" />
               </View>
-              <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>Join RealEstate</Text>
+              <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>Join MyPropertyFact</Text>
               <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 6, textAlign: "center", lineHeight: 20 }}>
                 Login and access millions of properties{"\n"}with smart alerts & saved searches
               </Text>
@@ -321,10 +319,10 @@ function GuestView() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => router.push("/auth" as any)}
+                onPress={() => router.replace("/(tabs)" as any)}
                 style={styles.secondaryBtn}
               >
-                <Text style={{ color: "#4361EE", fontSize: 15, fontWeight: "700" }}>Continue as Guest</Text>
+                <Text style={{ color: "#d89b38", fontSize: 15, fontWeight: "700" }}>Continue as Guest</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -501,7 +499,7 @@ const styles = StyleSheet.create({
 
   /* Guest auth card */
   authHeader: {
-    backgroundColor: "#4361EE",
+    backgroundColor: "#0f172a",
     paddingTop: 32, paddingBottom: 24, paddingHorizontal: 24,
     alignItems: "center",
   },
@@ -513,17 +511,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   primaryBtn: {
-    backgroundColor: "#4361EE",
+    backgroundColor: "#d89b38",
     borderRadius: 16,
     paddingVertical: 15,
     alignItems: "center",
-    shadowColor: "#4361EE",
+    shadowColor: "#d89b38",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3, shadowRadius: 12, elevation: 5,
   },
   secondaryBtn: {
     paddingVertical: 15, alignItems: "center", borderRadius: 16,
-    borderWidth: 1.5, borderColor: "#4361EE",
-    backgroundColor: "rgba(67,97,238,0.08)",
+    borderWidth: 1.5, borderColor: "#d89b38",
+    backgroundColor: "rgba(216,155,56,0.08)",
   },
 });

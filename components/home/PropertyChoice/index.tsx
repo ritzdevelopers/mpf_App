@@ -5,10 +5,10 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const STATIC_BHK_DATA = [
-  { id: 1, title: "1 RK / 1 BHK", icon: "bed-outline"    },
+  { id: 1, title: "1 BHK", icon: "bed-outline"    },
   { id: 2, title: "2 BHK",         icon: "home-outline"   },
   { id: 3, title: "3 BHK",         icon: "home-outline"   },
-  { id: 4, title: "4 BHK+",        icon: "business-outline"},
+  { id: 4, title: "4 BHK",         icon: "business-outline"},
 ];
 
 
@@ -70,14 +70,14 @@ export default function PropertyChoice() {
     const newCounts: Record<string, string> = {};
     
     // BHK Counts
-    newCounts["1 RK / 1 BHK"] = list.filter(p => {
+    newCounts["1 BHK"] = list.filter(p => {
        const conf = (p.projectConfiguration || "").toLowerCase();
        return conf.includes("1 bhk") || conf.includes("1 rk");
-    }).length.toLocaleString();
+    }).length.toString();
 
-    newCounts["2 BHK"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("2 bhk")).length.toLocaleString();
-    newCounts["3 BHK"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("3 bhk")).length.toLocaleString();
-    newCounts["4 BHK+"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("4 bhk")).length.toLocaleString();
+    newCounts["2 BHK"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("2 bhk")).length.toString();
+    newCounts["3 BHK"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("3 bhk")).length.toString();
+    newCounts["4 BHK"] = list.filter(p => (p.projectConfiguration || "").toLowerCase().includes("4 bhk")).length.toString();
     
     setCounts(newCounts);
   };

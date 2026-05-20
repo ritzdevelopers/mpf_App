@@ -88,7 +88,7 @@ export default function SidebarMenu({
             {/* Top Profile Section */}
             <View className="pb-6 border-b border-slate-200 flex-row items-center">
               <View className={styles.avatar}>
-                <Text className={styles.avatarText}>{userInitial}</Text>
+                <Ionicons name="person" size={32} color="#fff" />
               </View>
 
               <View className="ml-4 flex-1 justify-center">

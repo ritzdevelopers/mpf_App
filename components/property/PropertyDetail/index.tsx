@@ -969,25 +969,7 @@ export default function PropertyDetail({
             </GlassCard>
           )}
 
-          {/* ── EMI TEASER ── */}
-          <View className={styles.emiCard}>
-            <View className={styles.emiInner}>
-              <View className={styles.emiCol}>
-                <Text className={styles.emiLabel}>EMI Starts at</Text>
-                <Text className={styles.emiAmount}>
-                  ₹{emi.toLocaleString("en-IN")}
-                  <Text className={styles.emiUnit}> /mo</Text>
-                </Text>
-                <Text className={styles.emiNote}>Based on 20yr loan @ 8.5% p.a.</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => router.push("/popular_tools/emi" as any)}
-                className={styles.emiBtn}
-              >
-                <Text className={styles.emiBtnText}>Calculate</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+
 
         </View>
       </ScrollView>

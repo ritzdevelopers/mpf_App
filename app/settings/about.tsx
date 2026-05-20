@@ -4,24 +4,26 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import BackHeader from "@/components/layout/BackHeader";
 
-interface InfoCardProps {
+interface InfoPointProps {
   icon: React.ComponentProps<typeof Ionicons>["name"];
   title: string;
   body: string;
+  showDivider?: boolean;
 }
 
-function InfoCard({ icon, title, body }: InfoCardProps) {
+function InfoPoint({ icon, title, body, showDivider = true }: InfoPointProps) {
   return (
-    <View className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm mb-4">
-      <View className="flex-row items-center mb-3">
-        <View className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 items-center justify-center">
-          <Ionicons name={icon} size={20} color="#d89b38" />
+    <View>
+      <View className="flex-row items-center mb-2.5">
+        <View className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 items-center justify-center">
+          <Ionicons name={icon} size={18} color="#d89b38" />
         </View>
         <Text className="text-base font-extrabold text-slate-800 ml-3">{title}</Text>
       </View>
-      <Text className="text-xs text-slate-500 leading-5 font-semibold">
+      <Text className="text-xs text-slate-500 leading-5 font-semibold State pl-12 pr-1">
         {body}
       </Text>
+      {showDivider && <View className="h-[1px] bg-slate-100 my-5" />}
     </View>
   );
 }
@@ -45,33 +47,36 @@ export default function AboutAppSettingsPage() {
           </Text>
         </View>
 
-        {/* Info Cards List */}
-        <InfoCard
-          icon="rocket"
-          title="Our Mission"
-          body="MyPropertyFact was established to make luxury property exploration in the National Capital Region (NCR) entirely effortless. We replace real estate assumptions with verified facts, rich listings, and live analytics."
-        />
+        {/* Unified big container box */}
+        <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 mx-0.5">
+          <InfoPoint
+            icon="rocket"
+            title="Our Mission"
+            body="MyPropertyFact was established to make luxury property exploration in the National Capital Region (NCR) entirely effortless. We replace real estate assumptions with verified facts, rich listings, and live analytics."
+          />
 
-        <InfoCard
-          icon="sparkles"
-          title="Premium Intelligence"
-          body="Features live integration with our advanced Location Intelligence API. It lets you analyze local economics, public connectivity, amenities status, and real estate appreciation indexes dynamically before committing."
-        />
+          <InfoPoint
+            icon="sparkles"
+            title="Premium Intelligence"
+            body="Features live integration with our advanced Location Intelligence API. It lets you analyze local economics, public connectivity, amenities status, and real estate appreciation indexes dynamically before committing."
+          />
 
-        <InfoCard
-          icon="construct"
-          title="System Architecture"
-          body="Engineered natively using Expo SDK and React Native. The backend connects directly to secure Supabase databases, automated FCM push notification microservices, and live property feed pipelines."
-        />
+          <InfoPoint
+            icon="construct"
+            title="System Architecture"
+            body="Engineered natively using Expo SDK and React Native. The backend connects directly to secure Supabase databases, automated FCM push notification microservices, and live property feed pipelines."
+          />
 
-        <InfoCard
-          icon="ribbon"
-          title="Credits & Licensing"
-          body="All listings, metadata, locality scores, and architectural specifications are copyright © 2026 Ritz Developers & MyPropertyFact. All rights reserved."
-        />
+          <InfoPoint
+            icon="ribbon"
+            title="Credits & Licensing"
+            body="All listings, metadata, locality scores, and architectural specifications are copyright © 2026 Ritz Developers & MyPropertyFact. All rights reserved."
+            showDivider={false}
+          />
+        </View>
 
         {/* Footer */}
-        <View className="items-center mt-4 mb-12">
+        <View className="items-center mb-12">
           <Text className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
             Powered by Ritz Developers
           </Text>

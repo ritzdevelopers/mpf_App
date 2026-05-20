@@ -10,7 +10,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Text, View } from 'react-native';
+import { Animated, Dimensions, Image, Text, View } from 'react-native';
 import 'react-native-reanimated';
 import { enableFreeze } from 'react-native-screens';
 import * as Device from 'expo-device';
@@ -51,7 +51,7 @@ function SplashOverlay() {
 
   return (
     <Animated.View
-      style={{ opacity: fadeAnim, flex: 1, backgroundColor: '#EEF2FF',
+      style={{ opacity: fadeAnim, flex: 1, backgroundColor: '#f8fafc',
                alignItems: 'center', justifyContent: 'space-between', paddingVertical: 64 }}
     >
       {/* Center card */}
@@ -59,25 +59,25 @@ function SplashOverlay() {
         <View style={{
           width: width * 0.62, backgroundColor: '#FFFFFF', borderRadius: 28,
           alignItems: 'center', paddingVertical: 36, paddingHorizontal: 24,
-          shadowColor: '#4361EE', shadowOffset: { width: 0, height: 14 },
-          shadowOpacity: 0.13, shadowRadius: 28, elevation: 12,
+          shadowColor: '#0f172a', shadowOffset: { width: 0, height: 14 },
+          shadowOpacity: 0.1, shadowRadius: 28, elevation: 12,
         }}>
           <View style={{
-            width: 72, height: 72, borderRadius: 20, backgroundColor: '#4361EE',
+            width: 72, height: 72, borderRadius: 20, backgroundColor: '#0f172a',
             alignItems: 'center', justifyContent: 'center', marginBottom: 18,
-            shadowColor: '#4361EE', shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
+            shadowColor: '#0f172a', shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
           }}>
-            <Ionicons name="home" size={34} color="#FFFFFF" />
+            <Image source={require('../assets/images/icon.png')} style={{ width: 44, height: 44, resizeMode: 'contain', borderRadius: 10 }} />
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: 6 }}>
-            <Text style={{ fontSize: 28, fontWeight: '300', color: '#4361EE', letterSpacing: 0.5 }}>Real</Text>
-            <Text style={{ fontSize: 28, fontWeight: '800', color: '#1A1A2E', letterSpacing: 0.5 }}>Estate</Text>
+            <Text style={{ fontSize: 28, fontWeight: '300', color: '#d89b38', letterSpacing: 0.5 }}>Real</Text>
+            <Text style={{ fontSize: 28, fontWeight: '800', color: '#0f172a', letterSpacing: 0.5 }}>Estate</Text>
           </View>
 
-          <Text style={{ fontSize: 10, fontWeight: '600', color: '#8896B3',
-                         letterSpacing: 3, textTransform: 'uppercase' }}>
+          <Text style={{ fontSize: 10, fontWeight: '600', color: '#64748b',
+                         letterSpacing: 3, textTransform: 'uppercase', textAlign: 'center' }}>
             Find Your Dream Home
           </Text>
         </View>
@@ -85,16 +85,16 @@ function SplashOverlay() {
 
       {/* Loading bar + footer */}
       <View style={{ alignItems: 'center', gap: 10 }}>
-        <View style={{ width: TRACK_WIDTH, height: 3, backgroundColor: '#D8E0F5',
+        <View style={{ width: TRACK_WIDTH, height: 3, backgroundColor: '#e2e8f0',
                        borderRadius: 99, overflow: 'hidden' }}>
-          <Animated.View style={{ height: '100%', backgroundColor: '#4361EE',
+          <Animated.View style={{ height: '100%', backgroundColor: '#d89b38',
                                   borderRadius: 99, width: barWidth }} />
         </View>
-        <Text style={{ fontSize: 10, fontWeight: '600', color: '#A0ABCC',
+        <Text style={{ fontSize: 10, fontWeight: '600', color: '#64748b',
                        letterSpacing: 2.5, textTransform: 'uppercase' }}>
           Loading...
         </Text>
-        <Text style={{ fontSize: 11, color: '#B0BACC', letterSpacing: 0.3 }}>
+        <Text style={{ fontSize: 11, color: '#94a3b8', letterSpacing: 0.3 }}>
           © 2025 RealEstate Inc. All rights reserved.
         </Text>
       </View>
@@ -159,7 +159,7 @@ export default function RootLayout() {
   useEffect(() => {
     // Set the root view background color natively to match our splash theme.
     // This provides a fallback if there's any gap between screens.
-    SystemUI.setBackgroundColorAsync('#EEF2FF');
+    SystemUI.setBackgroundColorAsync('#f8fafc');
   }, []);
 
   if (!splashDone) {

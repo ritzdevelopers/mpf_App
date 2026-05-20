@@ -15,11 +15,15 @@ import {
     Image,
     Pressable,
     ScrollView,
+    Share,
     StatusBar,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
+import { useFavorites, toggleFavorite } from "@/utils/favoritesStore";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -64,64 +68,40 @@ export default function RecentScreen() {
   }, []);
 
   return (
-    <>
+    <SafeAreaView edges={["top"]} className="flex-1 bg-[#F5F4F0]">
       <StatusBar barStyle="dark-content" />
+
+      {/* ── HEADER ── */}
+      <Animated.View
+        className="flex-row items-center bg-white px-4 py-3.5 border-b border-slate-100"
+        style={{ opacity: headerOpacity, transform: [{ translateY: headerY }] }}
+      >
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.back()}
+          className="w-10 h-10 rounded-xl bg-slate-50 items-center justify-center border border-slate-200"
+        >
+          <Ionicons name="chevron-back" size={22} color="#1e293b" />
+        </TouchableOpacity>
+        <View className="ml-3">
+          <Text className="text-lg font-extrabold text-slate-900">Recent Collections</Text>
+          <Text className="text-[10px] text-slate-400 mt-0.5 font-semibold tracking-wide">
+            Your recently viewed luxury residences
+          </Text>
+        </View>
+      </Animated.View>
 
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 bg-[#F5F4F0]"
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
       >
-        {/* ── Hero Header ── */}
-        <Animated.View
-          className="px-6 pt-16"
-          style={{ opacity: headerOpacity, transform: [{ translateY: headerY }] }}
-        >
-          <View className="flex-row items-start justify-between">
-            <View className="flex-1">
-              <Text className="text-[10px] tracking-[5px] uppercase font-bold text-neutral-400">
-                Recent Collection
-              </Text>
-
-              <Text className="text-[54px] leading-[56px] font-black text-[#141210] mt-3 tracking-tight">
-                {"Spaces\nYou Loved"}
-              </Text>
-            </View>
-
-            {recentProjects.length > 0 && (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={clearRecentViews}
-                className="w-12 h-12 rounded-full bg-[#EDEBE6] items-center justify-center mt-7"
-              >
-                <Ionicons name="close" size={18} color="#5C5852" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View className="flex-row items-center justify-between mt-5">
-            <Text className="text-[14px] leading-6 text-neutral-400 flex-1 pr-4">
-              An editorial collection of architectural residences you explored.
-            </Text>
-
-            {recentProjects.length > 0 && (
-              <View className="bg-[#141210] rounded-full px-4 py-2">
-                <Text className="text-[#F5F4F0] text-[12px] font-bold tracking-wide">
-                  {recentProjects.length} saved
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <View className="h-px bg-[#DDD9D0] mt-7" />
-        </Animated.View>
-
         {/* ── Cards / Empty ── */}
         {recentProjects.length === 0 ? (
           <EmptyState onBrowse={() => router.push("/")} />
         ) : (
-          <View className="pt-10 pb-6">
+          <View className="pt-6 pb-6">
             {recentProjects.map((item, index) => {
               const imageUri = getImageUrl(
                 item.slugURL,
@@ -143,7 +123,7 @@ export default function RecentScreen() {
           </View>
         )}
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 }
 
@@ -157,6 +137,22 @@ interface CardProps {
 }
 
 function LuxuryCard({ item, imageUri, index, total, onPress }: CardProps) {
+  const favorites = useFavorites();
+  const isFavorited = favorites.has(item.id);
+
+  const handleShare = async () => {
+    try {
+      const url = `https://mypropertyfact.in/${item.slugURL}`;
+      await Share.share({
+        message: `Check out this property: ${item.projectName}\n\n${url}`,
+        url: url,
+        title: item.projectName,
+      });
+    } catch (e: any) {
+      console.error("Share error:", e.message);
+    }
+  };
+
   // Entrance animations
   const translateY  = useRef(new Animated.Value(60)).current;
   const opacity     = useRef(new Animated.Value(0)).current;
@@ -250,11 +246,21 @@ function LuxuryCard({ item, imageUri, index, total, onPress }: CardProps) {
         </Text>
 
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="share-outline" size={17} color="#C4BFB6" />
+          <TouchableOpacity
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-outline" size={17} color="#141210" />
           </TouchableOpacity>
-          <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="heart-outline" size={17} color="#C4BFB6" />
+          <TouchableOpacity
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            onPress={() => void toggleFavorite(item.id)}
+          >
+            <Ionicons
+              name={isFavorited ? "heart" : "heart-outline"}
+              size={17}
+              color={isFavorited ? "#ef4444" : "#141210"}
+            />
           </TouchableOpacity>
         </View>
       </View>

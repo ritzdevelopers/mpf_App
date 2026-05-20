@@ -118,11 +118,11 @@ export default function ForgotPasswordScreen() {
                 width: 72,
                 height: 72,
                 borderRadius: 22,
-                backgroundColor: "#4361EE",
+                backgroundColor: "#d89b38",
                 alignItems: "center",
                 justifyContent: "center",
                 marginBottom: 14,
-                shadowColor: "#4361EE",
+                shadowColor: "#d89b38",
                 shadowOffset: { width: 0, height: 10 },
                 shadowOpacity: 0.35,
                 shadowRadius: 20,
@@ -146,7 +146,7 @@ export default function ForgotPasswordScreen() {
               borderWidth: 1,
               borderColor: "#f1f5f9",
               padding: 22,
-              shadowColor: "#6366f1",
+              shadowColor: "#d89b38",
               shadowOffset: { width: 0, height: 12 },
               shadowOpacity: 0.13,
               shadowRadius: 28,
@@ -175,7 +175,7 @@ export default function ForgotPasswordScreen() {
                   activeOpacity={0.85}
                   style={{
                     marginTop: 18,
-                    backgroundColor: "#4361EE",
+                    backgroundColor: "#d89b38",
                     borderRadius: 14,
                     paddingVertical: 14,
                     alignItems: "center",
@@ -186,7 +186,7 @@ export default function ForgotPasswordScreen() {
               </View>
             ) : (
               <>
-                <Text style={{ fontSize: 12, fontWeight: "700", color: "#4361EE", marginBottom: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#d89b38", marginBottom: 8 }}>
                   EMAIL
                 </Text>
                 <View
@@ -238,7 +238,7 @@ export default function ForgotPasswordScreen() {
                   disabled={submitting}
                   activeOpacity={0.85}
                   style={{
-                    backgroundColor: submitting ? "#94a3b8" : "#4361EE",
+                    backgroundColor: submitting ? "#94a3b8" : "#d89b38",
                     borderRadius: 16,
                     paddingVertical: 16,
                     alignItems: "center",

@@ -46,6 +46,16 @@ const toolsData = [
     bg: "#FAF5FF",
     route: "/popular_tools/loan",
   },
+  {
+    id: 5,
+    title: "Locate\nScore",
+    desc: "Check area convenience",
+    icon: "location-outline" as const,
+    lib: "ion",
+    color: "#0d9488",
+    bg: "#F0FDFA",
+    route: "/popular_tools/LocateScore",
+  },
 ];
 
 export default function PopularTools() {

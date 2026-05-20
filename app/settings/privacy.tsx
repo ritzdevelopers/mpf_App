@@ -4,24 +4,26 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import BackHeader from "@/components/layout/BackHeader";
 
-interface PolicySectionProps {
+interface PolicyPointProps {
   icon: React.ComponentProps<typeof Ionicons>["name"];
   title: string;
   body: string;
+  showDivider?: boolean;
 }
 
-function PolicySection({ icon, title, body }: PolicySectionProps) {
+function PolicyPoint({ icon, title, body, showDivider = true }: PolicyPointProps) {
   return (
-    <View className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm mb-4">
-      <View className="flex-row items-center mb-3">
-        <View className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 items-center justify-center">
-          <Ionicons name={icon} size={20} color="#4361ee" />
+    <View>
+      <View className="flex-row items-center mb-2.5">
+        <View className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 items-center justify-center">
+          <Ionicons name={icon} size={18} color="#4361ee" />
         </View>
         <Text className="text-base font-extrabold text-slate-800 ml-3">{title}</Text>
       </View>
-      <Text className="text-xs text-slate-500 leading-5 font-semibold">
+      <Text className="text-xs text-slate-500 leading-5 font-semibold pl-12 pr-1">
         {body}
       </Text>
+      {showDivider && <View className="h-[1px] bg-slate-100 my-5" />}
     </View>
   );
 }
@@ -45,33 +47,36 @@ export default function PrivacySettingsPage() {
           </Text>
         </View>
 
-        {/* Content list */}
-        <PolicySection
-          icon="eye"
-          title="Data Collection & Hashing"
-          body="We collect basic registration parameters, search queries, and recently viewed indices purely to customize your personal feed. All profile passwords and sensitive preferences undergo high-security cryptographic hashing prior to database storage."
-        />
+        {/* Unified big container box */}
+        <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8 mx-0.5">
+          <PolicyPoint
+            icon="eye"
+            title="Data Collection & Hashing"
+            body="We collect basic registration parameters, search queries, and recently viewed indices purely to customize your personal feed. All profile passwords and sensitive preferences undergo high-security cryptographic hashing prior to database storage."
+          />
 
-        <PolicySection
-          icon="lock-closed"
-          title="FCM Token & Notifications"
-          body="Your unique Firebase Cloud Messaging (FCM) push tokens are stored within encrypted partitions in our secure cloud cluster. These keys are used strictly to notify you about matching listings, price appreciation trends, and live reminders."
-        />
+          <PolicyPoint
+            icon="lock-closed"
+            title="FCM Token & Notifications"
+            body="Your unique Firebase Cloud Messaging (FCM) push tokens are stored within encrypted partitions in our secure cloud cluster. These keys are used strictly to notify you about matching listings, price appreciation trends, and live reminders."
+          />
 
-        <PolicySection
-          icon="cloud-done"
-          title="Cloud APIs Compliance"
-          body="Integration handshakes with the Location Intelligence API and Supabase database endpoints utilize standard TLS 1.3 transport-layer encryption. This ensures third-party intelligence queries remain anonymous and completely safe."
-        />
+          <PolicyPoint
+            icon="cloud-done"
+            title="Cloud APIs Compliance"
+            body="Integration handshakes with the Location Intelligence API and Supabase database endpoints utilize standard TLS 1.3 transport-layer encryption. This ensures third-party intelligence queries remain anonymous and completely safe."
+          />
 
-        <PolicySection
-          icon="trash-bin"
-          title="Your Control & Erasure"
-          body="You hold complete authority over your credentials. You can opt out of dynamic alerts at any point, reset analytical caches, or request complete account deletion directly by contacting our Help and Support department."
-        />
+          <PolicyPoint
+            icon="trash-bin"
+            title="Your Control & Erasure"
+            body="You hold complete authority over your credentials. You can opt out of dynamic alerts at any point, reset analytical caches, or request complete account deletion directly by contacting our Help and Support department."
+            showDivider={false}
+          />
+        </View>
 
         {/* Footer */}
-        <View className="items-center mt-4 mb-12">
+        <View className="items-center mb-12">
           <Text className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
             Last Updated: May 2026
           </Text>

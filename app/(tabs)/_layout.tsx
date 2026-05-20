@@ -4,7 +4,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
 import React, { useRef } from 'react';
-import { Animated } from 'react-native';
+import { Animated, Platform } from 'react-native';
 
 function AnimatedTabIcon({
   name,
@@ -66,8 +66,9 @@ export default function TabLayout() {
         freezeOnBlur: false,
 
         tabBarStyle: {
+          height: Platform.OS === 'ios' ? 88 : 66,
           paddingTop: 8,
-          paddingBottom: 28,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           backgroundColor: "#ffffff",
           borderTopWidth: 1,
           borderTopColor: "#eeeeee",
