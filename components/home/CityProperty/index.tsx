@@ -76,10 +76,6 @@ export default function CityProperty() {
 
               <View className={styles.glassFooter}>
                 <Text className={styles.city}>{item.name}</Text>
-                <View className={styles.metaRow}>
-                  
-                  
-                </View>
               </View>
             </View>
           </TouchableOpacity>

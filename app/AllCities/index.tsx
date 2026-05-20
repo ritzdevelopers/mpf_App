@@ -4,8 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
+import { Image } from "expo-image";
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -136,19 +136,24 @@ export default function AllCities() {
       {/* ── Top bar ── */}
       <View className={styles.headerRow} style={{ position: "relative" }}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(tabs)" as any);
+            }
+          }}
           className={styles.backBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name="chevron-back" size={20} color="#0f172a" />
         </TouchableOpacity>
-        <Text
-          className={styles.title}
-          style={{ position: "absolute", left: 0, right: 0, textAlign: "center" }}
+        <View
           pointerEvents="none"
+          style={{ position: "absolute", left: 0, right: 0, alignItems: "center" }}
         >
-          All Cities
-        </Text>
+          <Text className={styles.title}>All Cities</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -199,16 +204,12 @@ export default function AllCities() {
               <View className={styles.cardInner}>
                 <Image
                   source={city.image}
-                  className={styles.image}
-                  resizeMode="cover"
+                  style={{ width: "100%", height: 240 }}
+                  contentFit="cover"
                 />
 
                 <View className={styles.glassFooter}>
                   <Text className={styles.city}>{city.name}</Text>
-                  <View className={styles.metaRow}>
-                    <Ionicons name="business-outline" size={11} color="rgba(255,255,255,0.7)" />
-                    <Text className={styles.metaText}>{city.homes}</Text>
-                  </View>
                 </View>
               </View>
             </TouchableOpacity>
