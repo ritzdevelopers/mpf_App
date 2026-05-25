@@ -1,50 +1,138 @@
-# Welcome to your Expo app 👋
+# 🚀 MPF App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+MPF App is a modern and scalable mobile application built using Expo, React Native, and TypeScript. The project is designed to deliver a smooth, fast, and responsive experience across Android and iOS platforms with a clean architecture, reusable components, and production-ready structure. The application follows modern mobile development practices and is optimized for performance, scalability, and maintainability.
 
-## Get started
+## ✨ Features
 
-1. Install dependencies
+- Cross-platform support for Android and iOS
+- Fast and optimized application performance
+- Modern and reusable UI components
+- File-based routing with Expo Router
+- Scalable and maintainable architecture
+- API integration support
+- Secure environment configuration
+- TypeScript support for better development experience
+- Production-ready project structure
 
-   ```bash
-   npm install
-   ```
+## 🛠️ Tech Stack
 
-2. Start the app
+The project is built using React Native, Expo, TypeScript, and Expo Router. React Hooks and Context API are used for state management and application logic. Development tools include Expo CLI, Babel, and ESLint for a better development workflow and code quality.
 
-   ```bash
-   npx expo start
-   ```
+## ⚙️ Prerequisites
 
-In the output, you'll find options to open the app in a
+Before running the project, make sure the following tools are installed on your system:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Node.js
+- npm or yarn
+- Expo CLI
+- Android Studio for Android Emulator
+- Xcode for iOS Simulator (macOS only)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📥 Installation
 
-## Get a fresh project
+Clone the repository:
 
-When you're ready, run:
+bash id="p5kz3n" git clone <repository-url> 
 
-```bash
-npm run reset-project
-```
+Move into the project directory:
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+bash id="z4uvs9" cd my-app 
 
-## Learn more
+Install dependencies:
 
-To learn more about developing your project with Expo, look at the following resources:
+bash id="s2f1qy" npm install 
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+or
 
-## Join the community
+bash id="z6r7xa" yarn install 
 
-Join our community of developers creating universal apps.
+## ▶️ Running the Application
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Start the Expo development server:
+
+bash id="m7a2ld" npx expo start 
+
+After starting the development server, the application can be opened using:
+
+- Expo Go on a physical device
+- Android Emulator
+- iOS Simulator
+- Development Build
+
+## 📱 Running on Android
+
+bash id="v8k3rt" npx expo run:android 
+
+## 🍎 Running on iOS
+
+bash id="r3n7wp" npx expo run:ios 
+
+## 🔐 Environment Variables
+
+Create a .env file in the root directory and add your required environment variables.
+
+Example:
+
+env id="x9q2um" EXPO_PUBLIC_API_URL=your_api_url 
+
+## 📂 Project Structure
+
+bash id="n4u7wx" my-app/ │ ├── app/                     # Main application routes and screens ├── assets/                  # Images, fonts, and icons ├── components/              # Reusable UI components ├── hooks/                   # Custom hooks ├── services/                # API services ├── constants/               # Static configuration values ├── utils/                   # Utility/helper functions ├── types/                   # TypeScript interfaces and types ├── scripts/                 # Automation scripts ├── ios/                     # Native iOS files ├── android/                 # Native Android files ├── .env                     # Environment variables └── app.json                 # Expo configuration 
+
+## 🧹 Reset Project
+
+To reset the starter project structure and create a fresh app directory:
+
+bash id="g5m8ra" npm run reset-project 
+
+## 📦 Build Commands
+
+Build Android application:
+
+bash id="h7n2qs" eas build -p android 
+
+Build iOS application:
+
+bash id="t9v4ld" eas build -p ios 
+
+## 🚀 Deployment
+
+The application can be deployed using Expo EAS Build and published to the Google Play Store and Apple App Store.
+
+## 📚 Documentation & Resources
+
+- Expo Documentation — https://docs.expo.dev/
+- Expo Router Documentation — https://docs.expo.dev/router/introduction/
+- React Native Documentation — https://reactnative.dev/
+
+## 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push the branch
+5. Open a Pull Request
+
+## 🐛 Troubleshooting
+
+Clear Expo cache:
+
+bash id="r6k2ys" npx expo start -c 
+
+Reinstall dependencies:
+
+bash id="d3u8jp" rm -rf node_modules npm install 
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 👨‍💻 Author
+
+Developed with ❤️ by Simranpreet Singh
+
+## ⭐ Support
+
+If you like this project, consider giving it a ⭐ on Gi
